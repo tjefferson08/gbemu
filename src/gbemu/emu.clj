@@ -24,5 +24,8 @@
       (if (not (cpu-step)) -3)
       (swap! ctx update-in :ticks inc))))
 
+(defn emu-cycles [cpu-cycles])
+  ;; TODO
+
 (defn delay [ms])
   ;; TODO sleep ms

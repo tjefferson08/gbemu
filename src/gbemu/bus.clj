@@ -1,14 +1,15 @@
-(ns gbemu.bus)
+(ns gbemu.bus
+  (:require [gbemu.cartridge :as cart]))
 
-(defn read [address]
-  (cond (> 0x8000 address) (cartridge/read address)
+
+(defn read-bus [address]
+  (cond (> 0x8000 address) (cart/read address)
     :else (throw (Exception. "Not implemented"))))
 
 
-(defn write [address value]
-  (cond (> 0x8000 address) (cartridge/write address value)
+(defn write-bus [address value]
+  (cond (> 0x8000 address) (cart/write address value)
     :else (throw (Exception. "Not implemented"))))
-
 
 ; 0x0000 - 0x3FFF : ROM Bank 0)
 ; 0x4000 - 0x7FFF : ROM Bank 1 - Switchable
