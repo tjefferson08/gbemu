@@ -1,5 +1,6 @@
 (ns gbemu.cpu
-  (:require [gbemu.instruction :as i]))
+  (:require [gbemu.instruction :as i]
+            [gbemu.bus :as bus]))
 
 (defn init []
   {:registers {:a 0, :f 0,
@@ -14,14 +15,16 @@
    :cur_inst nil
    :halted false
    :stepping false
-   :int_master_enabled})
+   :int_master_enabled false})
 
-
-(defn step [ctx]
-  (if (not (:halted ctx))
-     (let [ctx' (fetch-instruction ctx)
-           ctx'' (fetch-data ctx')
-           (execute)])))
+(defn read-reg [ctx r]
+  (let [regs (:registers ctx)]
+    (case r
+      :af (bit-or (regs :a) (bit-shift-left (regs :f) 8))
+      :bc (bit-or (regs :b) (bit-shift-left (regs :c) 8))
+      :de (bit-or (regs :d) (bit-shift-left (regs :e) 8))
+      :hl (bit-or (regs :h) (bit-shift-left (regs :l) 8))
+      (regs r))))
 
 (defn fetch-instruction [ctx]
   (let [pc (get-in ctx [:registers :pc])
@@ -39,7 +42,7 @@
       {:mem_dest 0 :dest_is_mem false}
       (case (inst :mode)
         :implied {}
-        :register {:fetched_data (cpu/read-register (:reg_1 inst))}
+        :register {:fetched_data (read-reg (:reg_1 inst))}
         :d8_to_register {:emu-cycles 1
                          :pc (inc pc)
                          :fetched_data (bus/read-bus pc)}
@@ -50,17 +53,14 @@
                 :fetched_data (bit-or lo (bit-shift-left hi 8))
                 :pc (+ pc 2)})))))
 
-
-(defn read-reg [ctx r]
-  (let [regs (:registers ctx)]
-    (case r
-      :af (bit-or (regs :a) (bit-shift-left (regs :f) 8))
-      :bc (bit-or (regs :b) (bit-shift-left (regs :c) 8))
-      :de (bit-or (regs :d) (bit-shift-left (regs :e) 8))
-      :hl (bit-or (regs :h) (bit-shift-left (regs :l) 8))
-      (regs r))))
-
 (defn execute [])
+
+(defn step [ctx]
+  (if (not (:halted ctx))
+     (let [ctx' (fetch-instruction ctx)
+           ctx' (fetch-data ctx')
+           _ (execute)])))
+
 
 (comment
   (println "sup")
