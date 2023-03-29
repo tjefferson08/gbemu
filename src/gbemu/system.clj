@@ -5,28 +5,12 @@
             [gbemu.cpu :as cpu]
             [gbemu.emu :as emu]))
 
-(def config
-  {::cartridge {:args (ig/ref ::cli-args)}
-   ::cpu {}
-   ::emu {:cpu (ig/ref ::cpu)}
-   ::cli-args nil})
-
 (def cli-options
   [["-r" "--rom ROM" "ROM path"]
    ["-h" "--help"]])
 
-(defmethod ig/init-key ::cartridge [_ {:keys [args]}]
-  (load-cartridge (get-in args [:options :rom])))
-
-(defmethod ig/init-key ::cpu [_ _]
-  (cpu/init))
-
-(defmethod ig/init-key ::emu [_ _]
-  (emu/init))
-
-(defmethod ig/init-key ::cli-args [_ opts] opts)
-
 (defn -main [& args]
-  (let [opts (parse-opts args cli-options)
-        cfg (assoc config ::cli-args opts)]
-    (ig/init cfg)))
+  (let [opts (parse-opts args cli-options)]
+    (emu/run {:emu {:paused false, :running true, :ticks 0}
+              :cartridge (load-cartridge (get-in opts [:options :rom]))
+              :cpu (cpu/init)})))

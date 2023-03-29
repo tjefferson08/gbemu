@@ -1,7 +1,6 @@
 (ns gbemu.emu
-  (:require [gbemu.cpu :as cpu]))
-
-(defn init [] {:paused false, :running false, :ticks 0})
+  (:require [gbemu.cartridge :as cart]
+            [gbemu.cpu :as cpu]))
 
 ;; Components
 ;; - Cartridge
@@ -9,23 +8,22 @@
 ;; - Address Bus
 ;; - PPU
 ;; - Timer
-(defn run [ctx rom-file]
-  ;; check for ROM file
-  ;; attempt cartrige load
+(defn run
+  ([ctx]
+   (println (str "Tick " (:ticks (:emu ctx))))
   ;; TODO initialize graphics
   ;; Initialize true-type-fonts (TTF)
   ;; initialize CPU
 
-  ;; (reset! ctx {:running true, :paused false, :ticks 0})
-
   ;; rework to be clojureish
-  (while (:running ctx)
-    (if (:paused ctx)
-      (delay 10)
-
-      ;; this is the wrong ctx, need CPU ctx
-      (if (not (cpu/step ctx)) -3))))
-      ;; (swap! ctx update-in :ticks inc))))
+   (if (and (< (:ticks (:emu ctx)) 3) (:running (:emu ctx)))
+     (if (:paused (:emu ctx))
+       (or (delay 10) (recur ctx))
+       (let [step-result (cpu/step ctx)]
+         (if step-result
+           (recur (update-in step-result [:emu :ticks] inc))
+           -3)))
+     0)))
 
 (defn emu-cycles [cpu-cycles])
   ;; TODO

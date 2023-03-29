@@ -18,6 +18,9 @@
     (clojure.java.io/copy in out)
     (.toByteArray out)))
 
+(defn to-unsigned [x]
+  (bit-and x 0xff))
+
 (defn slice
   "Take a slice (copy) array of byte array `bytes`"
   [bytes from to]

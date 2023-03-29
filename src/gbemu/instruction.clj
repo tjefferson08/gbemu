@@ -1,4 +1,5 @@
-(ns gbemu.instruction)
+(ns gbemu.instruction
+  (:require [gbemu.bytes :as b]))
 
 (def instructions
   {0x00 {:type :no-op, :mode :implied}
@@ -8,7 +9,11 @@
    0xC3 {:type :jump, :mode :d16}})
 
 (defn for-opcode [opcode]
-  (instructions opcode))
+  (instructions (b/to-unsigned opcode)))
 
 (defn init []
  {:type nil, :mode nil, :reg_1 nil, :reg_2 nil, :cond nil, :param 0})
+
+(comment
+
+  nil)
