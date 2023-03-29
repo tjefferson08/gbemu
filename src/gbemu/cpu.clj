@@ -18,12 +18,12 @@
    :int_master_enabled false})
 
 (defn read-reg [ctx r]
-  (let [regs (:registers ctx)]
+  (let [regs (get-in ctx [:cpu :registers])]
     (case r
-      :af (bit-or (regs :a) (bit-shift-left (regs :f) 8))
-      :bc (bit-or (regs :b) (bit-shift-left (regs :c) 8))
-      :de (bit-or (regs :d) (bit-shift-left (regs :e) 8))
-      :hl (bit-or (regs :h) (bit-shift-left (regs :l) 8))
+      :af (bit-or (bit-shift-left (regs :a) 8) (regs :f))
+      :bc (bit-or (bit-shift-left (regs :b) 8) (regs :c))
+      :de (bit-or (bit-shift-left (regs :d) 8) (regs :e))
+      :hl (bit-or (bit-shift-left (regs :h) 8) (regs :l))
       (regs r))))
 
 (defn fetch-instruction [ctx]
