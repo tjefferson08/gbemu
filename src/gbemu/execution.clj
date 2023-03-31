@@ -9,8 +9,15 @@
 (defn flag-set? [ctx flag]
   (let [flags (get-in ctx [:cpu :registers :f])]
     (case flag
-      :z (pos? (bit-and 0x01 flags))
+      :z (pos? (bit-and 0x80 flags))
      false)))
+
+(defn set-flag [ctx flag val]
+  (let [flags (get-in ctx [:cpu :registers :f])
+        next-flags (case flag
+                     :z (bit-and 0xFF ((if val bit-set bit-clear) flags 7))
+                     flags)]
+    assoc-in ctx [:cpu :registers :f] next-flags))
 
 (defn- check-cond [ctx]
   (let [z-set? (flag-set? ctx :z)
@@ -33,11 +40,21 @@
 (defn- di [ctx]
   (assoc-in ctx [:cpu :int-master-enabled] false))
 
+(defn- xor [ctx]
+  (let [a    (get-in ctx [:cpu :registers :a])
+        data (get-in ctx [:cpu :fetched-data])
+        res  (bit-xor a (bit-and data 0xFF))]
+    (-> ctx
+      (assoc-in [:cpu :registers :a] res)
+      (set-flag :z (zero? res)))))
+
+
 (def by-instruction
   {:none none
    :no-op identity
    :jump jump
    :di di
+   :xor xor
    :load load})
 
 (defn execute [ctx]
@@ -48,3 +65,10 @@
     (if f
       (f ctx)
       (throw (Exception. (str "Unhandled instruction" inst))))))
+
+(comment
+  (format "%02X"
+          (bit-and 0xFF (bit-set 0 7)))
+
+
+  nil)

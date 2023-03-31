@@ -65,7 +65,7 @@
            ctx' (fetch-instruction ctx)
            ;; _ (println (str "ctx after fetch-instr" ctx'))
            ctx'' (fetch-data ctx')
-           _ (println (str "ctx after fetch-data" ctx''))
+           ;; _ (println (str "ctx after fetch-data" ctx''))
            pc   (get-in ctx [:cpu :registers :pc])
            _ (println (format "%04X: %-7s (%02X %02X %02X)"
                               pc
@@ -81,7 +81,7 @@
   (println "sup")
   (format "%02X" 256)
 
-  (merge {:cpu {:regisers {:a 1 :b 2}}}
+  (merge-with merge {:cpu {:registers {:a 1 :b 2}}}
          {:cpu {:registers {:b 3}}})
 
   (println 2r101))

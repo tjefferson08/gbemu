@@ -3,8 +3,6 @@
             [integrant.repl.state :as ig-repl-state]
             [gbemu.system :as system]))
 
-(ig-repl/set-prep! (fn [] system/config))
-
 (def go ig-repl/go)
 (def halt ig-repl/halt)
 (def reset ig-repl/reset)
