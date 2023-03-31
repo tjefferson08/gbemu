@@ -1,6 +1,6 @@
 (ns gbemu.emu
   (:require [gbemu.cartridge :as cart]
-            [gbemu.cpu :as cpu]))
+            [gbemu.cpu.core :as cpu]))
 
 ;; Components
 ;; - Cartridge

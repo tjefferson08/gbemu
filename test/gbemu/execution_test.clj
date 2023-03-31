@@ -2,28 +2,29 @@
   (:require [gbemu.execution :as sut]
             [gbemu.instruction :as i]
             [clojure.test :refer :all]
-            [gbemu.cpu :as cpu]))
+            [gbemu.cpu.core :as cpu]
+            [gbemu.cpu.registers :as reg]))
 
 (def default-ctx {:cpu {:cur-instr nil, :fetched-data 0xA6 :registers {:pc 0x99 :a 0xAA :f 0}}})
 
 (deftest set-flags
   (let [ctx-ff (assoc-in default-ctx [:cpu :registers :f] 0xFF)
         ctx-00 (assoc-in default-ctx [:cpu :registers :f] 0x00)]
-   (is (= 2r01111111 (-> (sut/set-flags ctx-ff {:z false}) (cpu/read-reg :f))))
-   (is (= 2r10111111 (-> (sut/set-flags ctx-ff {:n false}) (cpu/read-reg :f))))
-   (is (= 2r11011111 (-> (sut/set-flags ctx-ff {:h false}) (cpu/read-reg :f))))
-   (is (= 2r11101111 (-> (sut/set-flags ctx-ff {:c false}) (cpu/read-reg :f))))
+   (is (= 2r01111111 (-> (sut/set-flags ctx-ff {:z false}) (reg/read-reg :f))))
+   (is (= 2r10111111 (-> (sut/set-flags ctx-ff {:n false}) (reg/read-reg :f))))
+   (is (= 2r11011111 (-> (sut/set-flags ctx-ff {:h false}) (reg/read-reg :f))))
+   (is (= 2r11101111 (-> (sut/set-flags ctx-ff {:c false}) (reg/read-reg :f))))
 
-   (is (= 2r10101111 (-> (sut/set-flags ctx-ff {:z true :n false :h true :c false}) (cpu/read-reg :f))))
-   (is (= 2r01011111 (-> (sut/set-flags ctx-ff {:z false :n true :h false :c true}) (cpu/read-reg :f))))
+   (is (= 2r10101111 (-> (sut/set-flags ctx-ff {:z true :n false :h true :c false}) (reg/read-reg :f))))
+   (is (= 2r01011111 (-> (sut/set-flags ctx-ff {:z false :n true :h false :c true}) (reg/read-reg :f))))
 
-   (is (= 2r10000000 (-> (sut/set-flags ctx-00 {:z true}) (cpu/read-reg :f))))
-   (is (= 2r01000000 (-> (sut/set-flags ctx-00 {:n true}) (cpu/read-reg :f))))
-   (is (= 2r00100000 (-> (sut/set-flags ctx-00 {:h true}) (cpu/read-reg :f))))
-   (is (= 2r00010000 (-> (sut/set-flags ctx-00 {:c true}) (cpu/read-reg :f))))
+   (is (= 2r10000000 (-> (sut/set-flags ctx-00 {:z true}) (reg/read-reg :f))))
+   (is (= 2r01000000 (-> (sut/set-flags ctx-00 {:n true}) (reg/read-reg :f))))
+   (is (= 2r00100000 (-> (sut/set-flags ctx-00 {:h true}) (reg/read-reg :f))))
+   (is (= 2r00010000 (-> (sut/set-flags ctx-00 {:c true}) (reg/read-reg :f))))
 
-   (is (= 2r10100000 (-> (sut/set-flags ctx-00 {:z true :n false :h true :c false}) (cpu/read-reg :f))))
-   (is (= 2r01010000 (-> (sut/set-flags ctx-00 {:z false :n true :h false :c true}) (cpu/read-reg :f))))))
+   (is (= 2r10100000 (-> (sut/set-flags ctx-00 {:z true :n false :h true :c false}) (reg/read-reg :f))))
+   (is (= 2r01010000 (-> (sut/set-flags ctx-00 {:z false :n true :h false :c true}) (reg/read-reg :f))))))
 
 (deftest jump-instr
   (let [ctx-in-z-set (-> default-ctx

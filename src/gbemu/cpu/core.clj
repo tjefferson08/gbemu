@@ -1,8 +1,8 @@
-(ns gbemu.cpu
+(ns gbemu.cpu.core
   (:require [gbemu.instruction :as i]
             [gbemu.bus :as bus]
-            [gbemu.execution :as exec]))
-
+            [gbemu.execution :as exec]
+            [gbemu.cpu.fetch :as fetch]))
 
 (defn init []
   {:registers {:a 0x01, :f 0,
@@ -19,15 +19,6 @@
    :stepping false
    :int-master-enabled false})
 
-(defn read-reg [ctx r]
-  (let [regs (get-in ctx [:cpu :registers])]
-    (case r
-      :af (bit-or (bit-shift-left (regs :a) 8) (regs :f))
-      :bc (bit-or (bit-shift-left (regs :b) 8) (regs :c))
-      :de (bit-or (bit-shift-left (regs :d) 8) (regs :e))
-      :hl (bit-or (bit-shift-left (regs :h) 8) (regs :l))
-      (regs r))))
-
 (defn fetch-instruction [ctx]
   (let [pc (get-in ctx [:cpu :registers :pc])
         op (bus/read-bus ctx pc)]
@@ -37,25 +28,6 @@
                            :cur-instr (i/for-opcode op))
         (assoc-in [:cpu :registers :pc] (inc pc)))))
 
-(defn fetch-data [ctx]
-  (let [inst (:cur-instr (:cpu ctx))
-        regs (:registers (:cpu ctx))
-        pc (:pc regs)]
-    (update ctx :cpu merge
-      {:mem_dest 0 :dest_is_mem false}
-      (case (inst :mode)
-        :implied {}
-        :register {:fetched-data (read-reg ctx (:reg_1 inst))}
-        :d8_to_register {:emu-cycles 1
-                         :registers (assoc regs :pc (inc pc))
-                         :fetched-data (bus/read-bus ctx pc)}
-        :d16 (let [lo (bus/read-bus ctx pc)
-                   hi (bus/read-bus ctx (inc pc))]
-               {:emu-cycles 2
-                ;; TODO unchecked byte to truncate
-                :fetched-data (bit-or lo (bit-shift-left hi 8))
-                :registers (assoc regs :pc (+ 2 pc))})))))
-
 (defn step [ctx]
   ;; (println (str "step " ctx))
   (if (not (:halted (:cpu ctx)))
@@ -63,7 +35,7 @@
            ;; _ (println (str "ctx before fetch-instr" ctx))
            ctx' (fetch-instruction ctx)
            ;; _ (println (str "ctx after fetch-instr" ctx'))
-           ctx'' (fetch-data ctx')
+           ctx'' (fetch/fetch-data ctx')
            ;; _ (println (str "ctx after fetch-data" ctx''))
            pc   (get-in ctx [:cpu :registers :pc])
            _ (println (format "%04X: %-7s (%02X %02X %02X)"

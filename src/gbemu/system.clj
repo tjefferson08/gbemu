@@ -2,7 +2,7 @@
   (:require [integrant.core :as ig]
             [clojure.tools.cli :refer [parse-opts]]
             [gbemu.cartridge :refer [load-cartridge]]
-            [gbemu.cpu :as cpu]
+            [gbemu.cpu.core :as cpu]
             [gbemu.emu :as emu]))
 
 (def cli-options

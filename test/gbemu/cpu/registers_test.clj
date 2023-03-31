@@ -1,5 +1,5 @@
-(ns gbemu.cpu-test
-  (:require [gbemu.cpu :as sut]
+(ns gbemu.cpu.registers-test
+  (:require [gbemu.cpu.registers :as sut]
             [clojure.test :refer :all]))
 
 (deftest read-reg
