@@ -4,6 +4,7 @@
   (throw (Exception. "No instruction! Fail")))
 
 (defn- load [ctx]
+
   (println "TODO"))
 
 (defn flag-set? [ctx flag]
@@ -51,6 +52,8 @@
       (assoc-in [:cpu :registers :a] res)
       (set-flag :z (zero? res)))))
 
+(defn- dec [ctx]
+  (throw (Exception. "TODO IMPLEMENT DEC")))
 
 (def by-instruction
   {:none none
@@ -58,6 +61,7 @@
    :jump jump
    :di di
    :xor xor
+   :dec dec
    :load load})
 
 (defn execute [ctx]
