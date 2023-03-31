@@ -2,7 +2,7 @@
   (:require [gbemu.cartridge :as cart]))
 
 (defn read-bus [ctx address]
-  (println (str "read bus" ctx address))
+  ;; (println (str "read bus" ctx address))
   (cond (> 0x8000 address) (cart/read-rom ctx address)
     :else (throw (Exception. "Not implemented"))))
 

@@ -10,7 +10,7 @@
 ;; - Timer
 (defn run
   ([ctx]
-   (println (str "Tick " (:ticks (:emu ctx))))
+   ;; (println (str "Tick " (:ticks (:emu ctx))))
   ;; TODO initialize graphics
   ;; Initialize true-type-fonts (TTF)
   ;; initialize CPU
