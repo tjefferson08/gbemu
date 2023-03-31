@@ -12,12 +12,15 @@
       :z (pos? (bit-and 0x80 flags))
      false)))
 
-(defn set-flag [ctx flag val]
-  (let [flags (get-in ctx [:cpu :registers :f])
-        next-flags (case flag
-                     :z (bit-and 0xFF ((if val bit-set bit-clear) flags 7))
-                     flags)]
-    assoc-in ctx [:cpu :registers :f] next-flags))
+(defn- set-flag [ctx flag val]
+  (let [flags      (get-in ctx [:cpu :registers :f])
+        bitmap     {:z 7, :n 6, :h 5, :c 4}
+        bit        (or (bitmap flag) (throw (Exception. (str "Unknown flag " flag))))
+        next-flags (bit-and 0xFF ((if val bit-set bit-clear) flags bit))]
+    (assoc-in ctx [:cpu :registers :f] next-flags)))
+
+(defn set-flags [ctx {:keys [z n h c] :as flags}]
+  (reduce (fn [ctx' [flag val]] (set-flag ctx' flag val) ) ctx flags))
 
 (defn- check-cond [ctx]
   (let [z-set? (flag-set? ctx :z)

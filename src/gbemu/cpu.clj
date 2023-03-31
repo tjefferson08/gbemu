@@ -5,7 +5,7 @@
 
 
 (defn init []
-  {:registers {:a 0, :f 0,
+  {:registers {:a 0x01, :f 0,
                :b 0, :c 0,
                :d 0, :e 0,
                :h 0, :l 0,
@@ -32,7 +32,6 @@
   (let [pc (get-in ctx [:cpu :registers :pc])
         op (bus/read-bus ctx pc)]
         ;; _ (println "fetching inst " pc op)]
-    (or op (throw (Exception. "Unknown opcode")))
     (-> ctx
         (update :cpu assoc :cur-opcode op
                            :cur-instr (i/for-opcode op))
@@ -46,7 +45,7 @@
       {:mem_dest 0 :dest_is_mem false}
       (case (inst :mode)
         :implied {}
-        :register {:fetched-data (read-reg (:reg_1 inst))}
+        :register {:fetched-data (read-reg ctx (:reg_1 inst))}
         :d8_to_register {:emu-cycles 1
                          :registers (assoc regs :pc (inc pc))
                          :fetched-data (bus/read-bus ctx pc)}
