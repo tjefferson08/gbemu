@@ -2,7 +2,8 @@
   (:require [gbemu.instruction :as i]
             [gbemu.bus :as bus]
             [gbemu.execution :as exec]
-            [gbemu.cpu.fetch :as fetch]))
+            [gbemu.cpu.fetch :as fetch]
+            [gbemu.cpu.registers :as r]))
 
 (defn init []
   {:registers {:a 0x01, :f 0,
@@ -38,19 +39,27 @@
            ctx'' (fetch/fetch-data ctx')
            ;; _ (println (str "ctx after fetch-data" ctx''))
            pc   (get-in ctx [:cpu :registers :pc])
-           _ (println (format "%04X: %-7s (%02X %02X %02X)"
+           _ (println (format "%04X: %-7s (%02X %02X %02X) A:%02X F:%02X B:%02X C:%02X D:%02X E:%02X H:%02X L:%02X"
                               pc
                               (get-in ctx'' [:cpu :cur-instr :type])
                               (get-in ctx'' [:cpu :cur-opcode])
                               (bus/read-bus ctx'' (+ pc 1))
-                              (bus/read-bus ctx'' (+ pc 2))))
+                              (bus/read-bus ctx'' (+ pc 2))
+                              (r/read-reg ctx'' :a)
+                              (r/read-reg ctx'' :f)
+                              (r/read-reg ctx'' :b)
+                              (r/read-reg ctx'' :c)
+                              (r/read-reg ctx'' :d)
+                              (r/read-reg ctx'' :e)
+                              (r/read-reg ctx'' :h)
+                              (r/read-reg ctx'' :l)))
            ctx''' (exec/execute ctx'')]
        ctx''')))
 
 
 (comment
   (println "sup")
-  (format "%02X" 256)
+  (format "%02X" (bit-xor 1 1))
 
   (merge-with merge {:cpu {:registers {:a 1 :b 2}}}
          {:cpu {:registers {:b 3}}})

@@ -1,5 +1,10 @@
 (ns gbemu.cpu.registers)
 
+(defn eight-bit? [r]
+  (boolean (#{:a :f :b :c :d :e :h :l} r)))
+
+(defn sixteen-bit? [r] (complement eight-bit?))
+
 (defn read-reg [ctx r]
   (let [regs (get-in ctx [:cpu :registers])]
     (case r
@@ -19,5 +24,12 @@
                   :bc {:b hi :c lo}
                   :de {:d hi :e lo}
                   :hl {:h hi :l lo}
+                  :sp {:sp val}
+                  :pc {:pc val}
                   {r lo})]
     (update-in ctx [:cpu :registers] merge changes)))
+
+(comment
+  (boolean nil)
+
+  nil)

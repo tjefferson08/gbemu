@@ -6,9 +6,20 @@
   (cond (> 0x8000 address) (cart/read-rom ctx address)
     :else (throw (Exception. "Not implemented"))))
 
-(defn write-bus [address value]
+(defn write-bus [ctx address value]
   (cond (> 0x8000 address) (cart/write-rom address value)
     :else (throw (Exception. "Not implemented"))))
+
+(defn read-bus-16 [ctx address]
+  (let [lo (read-bus address)
+        hi (read-bus (inc address))]
+    (bit-or lo (bit-shift-left hi 8))))
+
+(defn write-bus-16 [ctx address value]
+  (-> ctx
+     (write-bus (inc address) (bit-shift-right value 8))
+     (write-bus address (bit-and 0x00FF value))))
+
 
 ; 0x0000 - 0x3FFF : ROM Bank 0)
 ; 0x4000 - 0x7FFF : ROM Bank 1 - Switchable
@@ -23,3 +34,7 @@
 ; 0xFEA0 - 0xFEFF : Reserved - Unusable
 ; 0xFF00 - 0xFF7F : I/O Registers
 ; 0xFF80 - 0xFFFE : Zero Page
+
+(comment
+
+ nil)
