@@ -3,7 +3,8 @@
             [clojure.tools.cli :refer [parse-opts]]
             [gbemu.cartridge :refer [load-cartridge]]
             [gbemu.cpu.core :as cpu]
-            [gbemu.emu :as emu]))
+            [gbemu.emu :as emu]
+            [gbemu.ram :as ram]))
 
 (def cli-options
   [["-r" "--rom ROM" "ROM path"]
@@ -13,4 +14,5 @@
   (let [opts (parse-opts args cli-options)]
     (emu/run {:emu {:paused false, :running true, :ticks 0}
               :cartridge (load-cartridge (get-in opts [:options :rom]))
-              :cpu (cpu/init)})))
+              :cpu (cpu/init)
+              :ram (ram/init)})))

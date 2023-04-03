@@ -56,6 +56,15 @@
 
       :else       (r/write-reg ctx reg1 fetched-data))))
 
+(defn- load-high-ram [ctx]
+  (let [{:keys [cur-instr fetched-data]} (:cpu ctx)
+        {:keys [reg1 reg2]}              cur-instr
+        ;; _ (println ctx)
+        ctx'                             (if (= reg1 :a)
+                                           (r/write-reg ctx reg1 (bus/read-bus (bit-or 0xFF00 fetched-data)))
+                                           (bus/write-bus ctx (bit-or 0xFF00 fetched-data) (r/read-reg ctx reg2)))]
+    (assoc-in ctx' [:cpu :emu-cycles] 1)))
+
 (defn- di [ctx]
   (assoc-in ctx [:cpu :int-master-enabled] false))
 
@@ -77,7 +86,8 @@
    :di di
    :xor xor
    :dec dec
-   :load load})
+   :load load
+   :loadh load-high-ram})
 
 (defn execute [ctx]
   (let [inst (get-in ctx [:cpu :cur-instr])

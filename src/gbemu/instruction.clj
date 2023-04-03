@@ -101,10 +101,11 @@
    0xAF {:type :xor, :mode :register, :reg1 :a}
    0xC3 {:type :jump, :mode :d16}
 
+   0xE0 {:type :loadh, :mode :a8_register, :reg2 :a}
    0xE2 {:type :load, :mode :memloc_register, :reg1 :c, :reg2 :a}
-   ;; 0xE0 {:type :load, :mode :a8_register, :reg2 :a}
-   0xE8 {:type :load, :mode :d16_register, :reg2 :a}
-   0xF0 {:type :load, :mode :register_a8, :reg1 :a}
+   0xEA {:type :load, :mode :d16_register, :reg2 :a}
+
+   0xF0 {:type :loadh, :mode :register_a8, :reg1 :a}
    0xF2 {:type :load, :mode :register_memloc, :reg1 :a, :reg2 :c}
    0xF3 {:type :di, :mode :implied}
    0xF8 {:type :load, :mode :register_sp-plus-r8, :reg1 :hl}

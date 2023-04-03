@@ -29,6 +29,9 @@
                   {r lo})]
     (update-in ctx [:cpu :registers] merge changes)))
 
+(defn read-ie-reg [ctx])
+
+(defn write-ie-reg [ctx value])
 (comment
   (boolean nil)
 

@@ -72,10 +72,10 @@
 ;; Rather than use def + atom, maybe we can orchestrate component initialization with integrant?
 ;; bus depends on cart (and more)
 ;; cart depends on ROM
-(defn read-rom [ctx address]
+(defn read [ctx address]
    (aget (get-in ctx [:cartridge :rom-bytes]) address))
 
-(defn write-rom [ctx address value])
+(defn write [ctx address value])
 
 (comment
 

@@ -16,7 +16,7 @@
     (update ctx :cpu merge
       {:mem_dest 0 :dest_is_mem false}
       (case (inst :mode)
-        :a8_register {:mem_dest (bit-or 0xFF00 (bus/read-bus pc))
+        :a8_register {:mem_dest (bit-or 0xFF00 (bus/read-bus ctx pc))
                       :dest_is_mem true
                       :emu-cycles 1
                       :registers (r-update :pc (inc pc))}
@@ -55,7 +55,7 @@
                             d16 (bit-or (bit-and 0x00FF lo) (bit-and 0xFF00 (bit-shift-left hi 8)))]
                         {:emu-cycles 2
                          ;; TODO unchecked byte to truncate
-                         :fetched-data (reg2_val)
+                         :fetched-data reg2_val
                          :mem_dest d16
                          :dest_is_mem true
                          :registers (r-update :pc (+ 2 pc))})
