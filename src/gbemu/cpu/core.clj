@@ -18,7 +18,8 @@
    :cur-instr nil
    :halted false
    :stepping false
-   :int-master-enabled false})
+   :int-master-enabled false
+   :ie-register 0x00})
 
 (defn fetch-instruction [ctx]
   (let [pc (get-in ctx [:cpu :registers :pc])

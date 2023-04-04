@@ -18,6 +18,12 @@
     (clojure.java.io/copy in out)
     (.toByteArray out)))
 
+(defn spit-bytes
+  "Spit bytes to a spittable thing"
+  [x bytes]
+  (with-open [out (clojure.java.io/output-stream x)]
+    (.write out bytes)))
+
 (defn to-unsigned [x]
   (bit-and x 0xff))
 
@@ -25,3 +31,11 @@
   "Take a slice (copy) array of byte array `bytes`"
   [bytes from to]
   (java.util.Arrays/copyOfRange bytes from to))
+
+(comment
+  (spit-bytes "resources/roms/test.gb" (byte-array [0xC5 0xD5]))
+  (concat (byte-array [0x01]) (byte-array [0xFF]))
+
+  (spit "resources/roms/test.gb" "sup")
+
+ nil)
