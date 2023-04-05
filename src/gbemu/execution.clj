@@ -1,7 +1,8 @@
 (ns gbemu.execution
   (:require [gbemu.cpu.registers :as r]
             [gbemu.bus :as bus]
-            [clojure.pprint :refer [pprint]]))
+            [clojure.pprint :refer [pprint]]
+            [gbemu.stack :as stack]))
 
 (defn flag-set? [ctx flag]
   (let [flags (get-in ctx [:cpu :registers :f])]
@@ -79,6 +80,26 @@
 (defn- dec [ctx]
   (throw (Exception. "TODO IMPLEMENT DEC")))
 
+(defn- pop [ctx]
+  ;; TODO: emu-cycles b/t each 8bit stack pop
+  (let [[val ctx'] (stack/pop-16 ctx)
+        cur-instr (get-in ctx' [:cpu :cur-instr])
+        reg1 (:reg1 cur-instr)]
+    (if (= reg1 :af)
+      (r/write-reg ctx' reg1 (bit-and 0xFFF0 val))
+      (r/write-reg ctx' reg1 val))))
+
+(defn- push [ctx]
+  (let [cur-instr (get-in ctx [:cpu :cur-instr])
+        reg1 (:reg1 cur-instr)
+        _ (println "ctx before push" (:cpu ctx))
+        ctx' (stack/push-16 ctx (r/read-reg ctx reg1))
+        _ (println "ctx after push" (:cpu ctx'))]
+    ctx'))
+
+(defn- halt [ctx]
+  (assoc-in ctx [:cpu :halted] true))
+
 (def by-instruction
   {:none none
    :no-op identity
@@ -87,6 +108,9 @@
    :xor xor
    :dec dec
    :load load
+   :pop pop
+   :push push
+   :halt halt
    :loadh load-high-ram})
 
 (defn execute [ctx]

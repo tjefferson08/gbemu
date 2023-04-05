@@ -87,7 +87,7 @@
    0x73 {:type :load, :mode :memloc_register, :reg1 :hl :reg2 :e}
    0x74 {:type :load, :mode :memloc_register, :reg1 :hl :reg2 :h}
    0x75 {:type :load, :mode :memloc_register, :reg1 :hl :reg2 :l}
-   0x76 {:type :halt}
+   0x76 {:type :halt, :mode :implied}
    0x77 {:type :load, :mode :memloc_register, :reg1 :hl :reg2 :a}
    0x78 {:type :load, :mode :register_register, :reg1 :a, :reg2 :b}
    0x79 {:type :load, :mode :register_register, :reg1 :a, :reg2 :c}
@@ -99,15 +99,24 @@
    0x7F {:type :load, :mode :register_register, :reg1 :a, :reg2 :a}
 
    0xAF {:type :xor, :mode :register, :reg1 :a}
+   0xC1 {:type :pop, :mode :implied, :reg1 :bc}
    0xC3 {:type :jump, :mode :d16}
+   0xC5 {:type :push, :mode :implied, :reg1 :bc}
+
+   0xD1 {:type :pop, :mode :implied, :reg1 :de}
+   0xD5 {:type :push, :mode :implied, :reg1 :de}
 
    0xE0 {:type :loadh, :mode :a8_register, :reg2 :a}
+   0xE1 {:type :pop, :mode :implied, :reg1 :hl}
    0xE2 {:type :load, :mode :memloc_register, :reg1 :c, :reg2 :a}
+   0xE5 {:type :push, :mode :implied, :reg1 :hl}
    0xEA {:type :load, :mode :d16_register, :reg2 :a}
 
    0xF0 {:type :loadh, :mode :register_a8, :reg1 :a}
+   0xF1 {:type :pop, :mode :implied, :reg1 :af}
    0xF2 {:type :load, :mode :register_memloc, :reg1 :a, :reg2 :c}
    0xF3 {:type :di, :mode :implied}
+   0xF5 {:type :push, :mode :implied, :reg1 :af}
    0xF8 {:type :load, :mode :register_sp-plus-r8, :reg1 :hl}
    0xFA {:type :load, :mode :register_a16, :reg1 :a}})
 

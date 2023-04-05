@@ -19,7 +19,9 @@
    (if (and (< (:ticks (:emu ctx)) 10) (:running (:emu ctx)))
      (if (:paused (:emu ctx))
        (or (delay 10) (recur ctx))
-       (let [step-result (cpu/step ctx)]
+       (let [;;_ (println (:cpu ctx))
+             step-result (cpu/step ctx)
+             _ (println (:cpu step-result) (:emu step-result))]
          (if step-result
            (recur (update-in step-result [:emu :ticks] inc))
            -3)))

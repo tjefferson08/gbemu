@@ -8,10 +8,11 @@
   (let [header-bytes (bytes/slurp-bytes "resources/roms/header-only.gb")
         rom-file     (clojure.java.io/file "/tmp/tempfile-rom.gb")
         new-rom-bytes (byte-array (concat header-bytes instructions))
-        _            (bytes/spit-bytes rom-file new-rom-bytes)]))
+        _            (bytes/spit-bytes rom-file new-rom-bytes)]
+     (sut/boot rom-file)))
 
 
 
 (deftest ^:integration stack-operations
-  (let [ctx (ctx-with {:instructions [0xC5 0xD5 0xE5 0xF5]})]
-    (is (= 0x9999) (r/read-reg ctx :pc))))
+  (let [ctx (ctx-with {:instructions [0x76 0xC5 0xD5 0xE5 0xF5 0x76]})]
+    (is (= 0x99 (r/read-reg ctx :pc)))))

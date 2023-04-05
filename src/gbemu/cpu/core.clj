@@ -10,7 +10,7 @@
                :b 0, :c 0,
                :d 0, :e 0,
                :h 0, :l 0,
-               :pc 0x100, :sp 0}
+               :pc 0x100, :sp 0xDFFE}
    :fetched-data 0,
    :mem_dest 0,
    :dest_is_mem false,
@@ -34,11 +34,11 @@
   ;; (println (str "step " ctx))
   (if (not (:halted (:cpu ctx)))
      (let [
-           ;; _ (println (str "ctx before fetch-instr" ctx))
+           _ (println (str "ctx before fetch-instr" (:cpu ctx)))
            ctx' (fetch-instruction ctx)
-           ;; _ (println (str "ctx after fetch-instr" ctx'))
+           _ (println (str "ctx after fetch-instr" (:cpu ctx')))
            ctx'' (fetch/fetch-data ctx')
-           ;; _ (println (str "ctx after fetch-data" ctx''))
+           _ (println (str "ctx after fetch-data" (:cpu ctx'')))
            pc   (get-in ctx [:cpu :registers :pc])
            _ (println (format "%04X: %-7s (%02X %02X %02X) A:%02X F:%02X BC:%02X DE:%02X%02X HL:%02X%02X"
                               pc

@@ -43,7 +43,7 @@
   (cond
     ;; 0x0000 - 0x3FFF : ROM Bank 0)
     ;; 0x4000 - 0x7FFF : ROM Bank 1 - Switchable
-    (> 0x8000 address) (cart/write address value)
+    (> 0x8000 address) (cart/write ctx address value)
 
     ;; 0x9800 - 0x9BFF : BG Map 1
     ;; 0x9C00 - 0x9FFF : BG Map 2
