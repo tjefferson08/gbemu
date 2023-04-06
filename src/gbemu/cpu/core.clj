@@ -31,31 +31,28 @@
         (assoc-in [:cpu :registers :pc] (inc pc)))))
 
 (defn step [ctx]
-  ;; (println (str "step " ctx))
-  (if (not (:halted (:cpu ctx)))
-     (let [
-           _ (println (str "ctx before fetch-instr" (:cpu ctx)))
-           ctx' (fetch-instruction ctx)
-           _ (println (str "ctx after fetch-instr" (:cpu ctx')))
-           ctx'' (fetch/fetch-data ctx')
-           _ (println (str "ctx after fetch-data" (:cpu ctx'')))
-           pc   (get-in ctx [:cpu :registers :pc])
-           _ (println (format "%04X: %-7s (%02X %02X %02X) A:%02X F:%02X BC:%02X DE:%02X%02X HL:%02X%02X"
-                              pc
-                              (get-in ctx'' [:cpu :cur-instr :type])
-                              (get-in ctx'' [:cpu :cur-opcode])
-                              (bus/read-bus ctx'' (+ pc 1))
-                              (bus/read-bus ctx'' (+ pc 2))
-                              (r/read-reg ctx'' :a)
-                              (r/read-reg ctx'' :f)
-                              (r/read-reg ctx'' :b)
-                              (r/read-reg ctx'' :c)
-                              (r/read-reg ctx'' :d)
-                              (r/read-reg ctx'' :e)
-                              (r/read-reg ctx'' :h)
-                              (r/read-reg ctx'' :l)))
-           ctx''' (exec/execute ctx'')]
-       ctx''')))
+  (let [_ (println (str "ctx before fetch-instr" (:cpu ctx)))
+        ctx' (fetch-instruction ctx)
+        _ (println (str "ctx after fetch-instr" (:cpu ctx')))
+        ctx'' (fetch/fetch-data ctx')
+        _ (println (str "ctx after fetch-data" (:cpu ctx'')))
+        pc   (get-in ctx [:cpu :registers :pc])
+        _ (println (format "%04X: %-7s (%02X %02X %02X) A:%02X F:%02X BC:%02X DE:%02X%02X HL:%02X%02X"
+                            pc
+                            (get-in ctx'' [:cpu :cur-instr :type])
+                            (get-in ctx'' [:cpu :cur-opcode])
+                            (bus/read-bus ctx'' (+ pc 1))
+                            (bus/read-bus ctx'' (+ pc 2))
+                            (r/read-reg ctx'' :a)
+                            (r/read-reg ctx'' :f)
+                            (r/read-reg ctx'' :b)
+                            (r/read-reg ctx'' :c)
+                            (r/read-reg ctx'' :d)
+                            (r/read-reg ctx'' :e)
+                            (r/read-reg ctx'' :h)
+                            (r/read-reg ctx'' :l)))
+        ctx''' (exec/execute ctx'')]
+   ctx'''))
 
 
 (comment

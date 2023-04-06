@@ -22,9 +22,9 @@
        (let [;;_ (println (:cpu ctx))
              step-result (cpu/step ctx)
              _ (println (:cpu step-result) (:emu step-result))]
-         (if step-result
-           (recur (update-in step-result [:emu :ticks] inc))
-           -3)))
+         (if (:halted (:cpu step-result))
+           step-result
+           (recur (update-in step-result [:emu :ticks] inc)))))
      0)))
 
 (defn emu-cycles [cpu-cycles])
