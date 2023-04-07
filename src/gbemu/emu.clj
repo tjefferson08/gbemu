@@ -16,7 +16,7 @@
   ;; initialize CPU
 
   ;; rework to be clojureish
-   (if (and (< (:ticks (:emu ctx)) 10) (:running (:emu ctx)))
+   (if (:running (:emu ctx))
      (if (:paused (:emu ctx))
        (or (delay 10) (recur ctx))
        (let [;;_ (println (:cpu ctx))

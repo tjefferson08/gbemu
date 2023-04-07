@@ -6,20 +6,21 @@
   (let [sp (r/read-reg ctx :sp)
         sp' (bit-and 0xFFFF (dec sp))
         _   (println "sp'" sp')
-        ctx' #dbg (bus/write-bus ctx sp' val)
+        ctx' (bus/write-bus ctx sp' val)
         _    (println "ctx after bus write" (:cpu ctx'))
         ctx'' (r/write-reg ctx' :sp sp')
         _    (println "ctx after reg write" (:cpu ctx''))]
      ctx''))
 
 (defn push-16 [ctx val]
-  (-> ctx (push (bit-and 0xFF (bit-shift-right val 8)))
-          (push (bit-and 0xFF val))))
+  (let [ctx'  (push ctx  (bit-and 0xFF (bit-shift-right val 8)))
+        ctx'' (push ctx' (bit-and 0xFF val))]
+    ctx''))
 
 (defn pop [ctx]
   (let [sp (r/read-reg ctx :sp)
         sp' (inc sp)
-        val (bus/read-bus ctx sp')
+        val (bus/read-bus ctx sp)
         ctx' (-> ctx (r/write-reg :sp sp'))]
      [val ctx']))
 
@@ -28,7 +29,7 @@
   (let [[lo ctx'] (pop ctx)
         [hi ctx''] (pop ctx')
         val (bit-or lo (bit-shift-left hi 8))]
-   [val ctx']))
+   [val ctx'']))
 
 (comment
   (format "%04X" (bit-shift-left 0x04 1))

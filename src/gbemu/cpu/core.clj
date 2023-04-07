@@ -10,7 +10,7 @@
                :b 0, :c 0,
                :d 0, :e 0,
                :h 0, :l 0,
-               :pc 0x100, :sp 0xDFFE}
+               :pc 0x100, :sp 0xDFFF}
    :fetched-data 0,
    :mem_dest 0,
    :dest_is_mem false,
