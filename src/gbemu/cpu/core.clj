@@ -1,7 +1,7 @@
 (ns gbemu.cpu.core
   (:require [gbemu.instruction :as i]
             [gbemu.bus :as bus]
-            [gbemu.execution :as exec]
+            [gbemu.execution.core :as exec]
             [gbemu.cpu.fetch :as fetch]
             [gbemu.cpu.registers :as r]))
 
