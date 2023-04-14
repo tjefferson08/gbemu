@@ -27,6 +27,9 @@
 (defn to-unsigned [x]
   (bit-and x 0xff))
 
+(defn ->d16 [lo hi]
+  (bit-or (to-unsigned lo) (bit-shift-left (to-unsigned hi) 8)))
+
 (defn slice
   "Take a slice (copy) array of byte array `bytes`"
   [bytes from to]
@@ -37,5 +40,6 @@
   (concat (byte-array [0x01]) (byte-array [0xFF]))
 
   (spit "resources/roms/test.gb" "sup")
+  (format "%04X" (->d16 0x12 0x34))
 
  nil)

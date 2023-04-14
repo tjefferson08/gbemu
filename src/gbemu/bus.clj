@@ -70,7 +70,9 @@
       (> 0xFF00 address) (throw (Exception. "Reserved - Unusable"))
 
       ;; 0xFF00 - 0xFF7F : I/O Registers
-      (> 0xFF80 address) (throw (Exception. "I/O Registers: Not yet implemented TODO"))
+      (> 0xFF80 address) (do
+                           (println "I/O Registers: Not yet implemented TODO")
+                           ctx)
 
       ;; 0xFF80 - 0xFFFE : high RAM
       (> 0xFFFF address) (ram/h-write ctx address value)

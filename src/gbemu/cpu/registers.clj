@@ -29,9 +29,14 @@
                   {r lo})]
     (update-in ctx [:cpu :registers] merge changes)))
 
-(defn read-ie-reg [ctx])
+(defn read-ie-reg [ctx]
+  (println "TODO implement ie read")
+  ctx)
 
-(defn write-ie-reg [ctx value])
+(defn write-ie-reg [ctx value]
+  (println "TODO implement ie write")
+  ctx)
+
 (comment
   (boolean nil)
 

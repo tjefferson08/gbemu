@@ -5,11 +5,11 @@
 (defn push [ctx val]
   (let [sp (r/read-reg ctx :sp)
         sp' (bit-and 0xFFFF (dec sp))
-        _   (println "sp'" sp')
+        ;; _   (println "sp'" sp')
         ctx' (bus/write-bus ctx sp' val)
-        _    (println "ctx after bus write" (:cpu ctx'))
-        ctx'' (r/write-reg ctx' :sp sp')
-        _    (println "ctx after reg write" (:cpu ctx''))]
+        ;; _    (println "ctx after bus write" (:cpu ctx'))
+        ctx'' (r/write-reg ctx' :sp sp')]
+        ;; _    (println "ctx after reg write" (:cpu ctx''))]
      ctx''))
 
 (defn push-16 [ctx val]

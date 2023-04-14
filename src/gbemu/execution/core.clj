@@ -38,6 +38,11 @@
   {:none none
    :no-op identity
    :jump jump/jump
+   :call jump/call
+   :ret jump/ret
+   :ret-i jump/ret-i
+   :jump-rel jump/jump-rel
+   :rst jump/rst
    :di di
    :xor xor/xor
    :dec dec/dec
