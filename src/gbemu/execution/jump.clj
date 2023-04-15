@@ -42,8 +42,8 @@
     (let [[lo ctx'] (stack/pop ctx)
           ;; _ (emu-cycles 1)
           [hi ctx''] (stack/pop ctx')
-          new-pc     (bytes/->d16 lo hi)
-          _ (println "ret ctx new-pc" new-pc (:cpu ctx''))]
+          new-pc     (bytes/->d16 lo hi)]
+          ;; _ (println "ret ctx new-pc" new-pc (:cpu ctx''))]
       (r/write-reg ctx'' :pc new-pc))))
       ;; cycles 1 again
 

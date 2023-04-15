@@ -38,7 +38,7 @@
         ctx'' (fetch/fetch-data ctx')
         ;; _ (println (str "ctx after fetch-data" (:cpu ctx'')))
         pc   (get-in ctx [:cpu :registers :pc])
-        _ (println (format "%04X: %-7s (%02X %02X %02X) A:%02X F:%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X SP:%04X"
+        _ (println (format "%04X: %-12s (%02X %02X %02X) A:%02X F:%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X SP:%04X"
                             pc
                             (get-in ctx'' [:cpu :cur-instr :type])
                             (get-in ctx'' [:cpu :cur-opcode])

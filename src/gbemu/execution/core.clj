@@ -6,7 +6,8 @@
             [gbemu.execution.load :as load]
             [gbemu.execution.dec :as dec]
             [gbemu.execution.jump :as jump]
-            [gbemu.execution.xor :as xor]))
+            [gbemu.execution.xor :as xor]
+            [gbemu.execution.math :as math]))
 
 (defn- none [ctx]
   (throw (Exception. "No instruction! Fail")))
@@ -45,7 +46,8 @@
    :rst jump/rst
    :di di
    :xor xor/xor
-   :dec dec/dec
+   :decrement math/decrement
+   :increment math/increment
    :load load/load
    :pop pop
    :push push
