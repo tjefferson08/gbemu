@@ -3,7 +3,8 @@
             [clojure.test :refer :all]
             [gbemu.bytes :as bytes]
             [gbemu.cpu.registers :as r]
-            [gbemu.bus :as bus]))
+            [gbemu.bus :as bus]
+            [gbemu.execution.flags :as flags]))
 
 (defn build-rom-vec [instructions regions]
   (let [header-bytes (bytes/slurp-bytes "resources/roms/header-only.gb")
@@ -76,21 +77,46 @@
     (is (= 0x04 (r/read-reg ctx :c)))))
 
 (deftest ^:integration math-instructions
-  (let [ctx (ctx-with {:instructions [
-                                      0x31 0xAA 0x00 ;; LD SP, 0x00AA
-                                      0xE8 0x10      ;; ADD SP 0x10 (16)
-                                      0xE8 0xF1      ;; ADD SP 0xF0 (-15)
-                                      0x21 0x01 0x00 ;; LD, HL 0x0001
-                                      0x29           ;; ADD HL, HL (HL=0x0002)
-                                      0x39           ;; ADD HL, SP (HL=0x00AD)
-                                      0x01 0x00 0x01 ;; LD BC, 0x0100
-                                      0x09           ;; ADD HL, BC (HL=0x01AD)
-                                      0x11 0x00 0x02 ;; LD DE, 0x0200
-                                      0x19           ;; ADD HL, DE (HL=0x03AD)
-                                      0x76]})]
-    (is (:halted (:cpu ctx)))
-    (is (= 0x00AB (r/read-reg ctx :sp)))
-    (is (= 0x03AD (r/read-reg ctx :hl)))))
+  (let [ctx-16-bit-add (ctx-with {:instructions [
+                                                 0x31 0xAA 0x00 ;; LD SP, 0x00AA
+                                                 0xE8 0x10      ;; ADD SP 0x10 (16)
+                                                 0xE8 0xF1      ;; ADD SP 0xF0 (-15)
+                                                 0x21 0x01 0x00 ;; LD, HL 0x0001
+                                                 0x29           ;; ADD HL, HL (HL=0x0002)
+                                                 0x39           ;; ADD HL, SP (HL=0x00AD)
+                                                 0x01 0x00 0x01 ;; LD BC, 0x0100
+                                                 0x09           ;; ADD HL, BC (HL=0x01AD)
+                                                 0x11 0x00 0x02 ;; LD DE, 0x0200
+                                                 0x19           ;; ADD HL, DE (HL=0x03AD)
+                                                 0x76]})]
+    (is (:halted (:cpu ctx-16-bit-add)))
+    (is (= 0x00AB (r/read-reg ctx-16-bit-add :sp)))
+    (is (= 0x0100 (r/read-reg ctx-16-bit-add :bc)))
+    (is (= 0x03AD (r/read-reg ctx-16-bit-add :hl))))
+
+  (let [ctx-8-bit-add (ctx-with {:instructions [
+                                                0x3E 0x01    ;; LD A, 0x01
+                                                0x06 0x02    ;; LD B, 0x02
+                                                0x80         ;; ADD A,B (A=0x03)
+                                                0x0E 0x04    ;; LD C, 0x04
+                                                0x81         ;; ADD A,C (A=0x07)
+                                                0x16 0x08    ;; LD D, 0x08
+                                                0x82         ;; ADD A,D (A=0x0F)
+                                                0x1E 0x10    ;; LD E, 0x10
+                                                0x83         ;; ADD A,E (A=0x1F)
+                                                0x26 0x20    ;; LD H, 0x20
+                                                0x84         ;; ADD A,H (A=0x3F)
+                                                0x2E 0x01    ;; LD L, 0x40
+                                                0x85         ;; ADD A,L (A=0x40)
+                                                0x87           ;; ADD A,A (A=0x80)
+                                                0x21 0x01 0xC0 ;; LD HL, 0xC001
+                                                0x36 0xFA      ;; LD $(HL), 0xFA
+                                                0x86           ;; ADD A,$(HL) (A=0x??)
+                                                0x76]})]
+    (is (= 0xFA (bus/read-bus ctx-8-bit-add 0xC001)))
+    (is (= 0x7A (r/read-reg ctx-8-bit-add :a)))
+    (is (not (flags/flag-set? ctx-8-bit-add :z)))
+    (is (flags/flag-set? ctx-8-bit-add :c))))
 
 (comment
   (format "%02X" -15)

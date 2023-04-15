@@ -3,7 +3,7 @@
 (defn eight-bit? [r]
   (boolean (#{:a :f :b :c :d :e :h :l} r)))
 
-(defn sixteen-bit? [r] (complement eight-bit?))
+(defn sixteen-bit? [r] (not (eight-bit? r)))
 
 (defn read-reg [ctx r]
   (let [regs (get-in ctx [:cpu :registers])]

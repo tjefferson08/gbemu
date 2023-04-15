@@ -16,3 +16,9 @@
     (is (= 0x11 (sut/read-reg updated-a :a)))
     (is (= 0x61 (sut/read-reg updated-af :a)))
     (is (= 0x16 (sut/read-reg updated-af :f)))))
+
+(deftest eight-bit?
+  (is (sut/eight-bit? :a)))
+
+(deftest sixteen-bit?
+  (is (sut/sixteen-bit? :sp)))

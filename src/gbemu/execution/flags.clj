@@ -1,10 +1,11 @@
 (ns gbemu.execution.flags)
 
+(defn- bit-for [flag]
+  (flag {:z 7, :n 6, :h 5, :c 4}))
+
 (defn flag-set? [ctx flag]
   (let [flags (get-in ctx [:cpu :registers :f])]
-    (case flag
-      :z (pos? (bit-and 0x80 flags))
-      false)))
+    (bit-test flags (bit-for flag))))
 
 (defn- set-flag [ctx flag val]
   (let [flags      (get-in ctx [:cpu :registers :f])

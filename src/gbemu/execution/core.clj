@@ -35,25 +35,25 @@
 (defn- halt [ctx]
   (assoc-in ctx [:cpu :halted] true))
 
-(def by-instruction
-  {:none none
-   :no-op identity
-   :jump jump/jump
-   :call jump/call
-   :ret jump/ret
-   :ret-i jump/ret-i
-   :jump-rel jump/jump-rel
-   :rst jump/rst
-   :di di
-   :add math/add
-   :xor xor/xor
-   :decrement math/decrement
-   :increment math/increment
-   :load load/load
-   :pop pop
-   :push push
-   :halt halt
-   :loadh load/load-high-ram})
+(defn by-instruction [op]
+  (op {:none none
+       :no-op identity
+       :jump jump/jump
+       :call jump/call
+       :ret jump/ret
+       :ret-i jump/ret-i
+       :jump-rel jump/jump-rel
+       :rst jump/rst
+       :di di
+       :add math/add
+       :xor xor/xor
+       :decrement math/decrement
+       :increment math/increment
+       :load load/load
+       :pop pop
+       :push push
+       :halt halt
+       :loadh load/load-high-ram}))
 
 (defn execute [ctx]
   (let [inst (get-in ctx [:cpu :cur-instr])

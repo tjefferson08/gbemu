@@ -71,13 +71,25 @@
             half-sum                         (+ (bit-and 0x0FFF fetched-data) (bit-and 0x0FFF operand))
             h                                (<= 0x1000 half-sum)
             c                                (< 0xFFFF v)
+            _ (println (ctx :cpu))
             v'                               (bit-and 0xFFFF v)]
         (-> ctx
           (r/write-reg reg1 v')
           (flags/set-flags {:n 0, :h h, :c c}))))))
 
 (defn- add-8-bit [ctx]
-  ctx)
+  (let [{:keys [cur-instr fetched-data]} (ctx :cpu)
+        {:keys [reg1 reg2] :as inst}     cur-instr
+        operand                          (r/read-reg ctx reg1)
+        v                                (+ fetched-data operand)
+        half-sum                         (+ (bit-and 0x0F fetched-data) (bit-and 0x0F operand))
+        h                                (<= 0x10 half-sum)
+        c                                (< 0xFF v)
+        _ (println "carry?" c)
+        v'                               (bytes/to-unsigned v)]
+    (-> ctx
+        (r/write-reg reg1 v')
+        (flags/set-flags {:z (zero? v'), :n 0, :h h, :c c}))))
 
 (defn add [ctx]
   (let [reg1 (get-in ctx [:cpu :cur-instr :reg1])]
