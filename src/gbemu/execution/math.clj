@@ -53,20 +53,28 @@
             v                                (+ sp operand)
             half-sum                         (+ (bit-and 0x0F fetched-data) (bit-and 0x0F sp))
             h                                (<= 0x10 half-sum)
-            c                                (<= 0xFFFF v)
-            v'                               (bit-and 0xFFF v)]
+            c                                (< 0xFFFF v)
+            v'                               (bit-and 0xFFFF v)]
         (-> ctx
           (r/write-reg :sp v')
           (flags/set-flags {:z 0, :n 0, :h h, :c c}))))
 
 (defn- add-16-bit [ctx]
   (let [{:keys [cur-instr fetched-data]} (ctx :cpu)
-        {:keys [reg1] :as inst}          cur-instr
+        {:keys [reg1 reg2] :as inst}    cur-instr
         a                                (r/read-reg ctx :a)]
     ;; TODO add 1 cycle for 16 bit reg1
     (if (= :sp reg1)
       (add-sp ctx)
-      ctx)))
+      (let [operand                          (r/read-reg ctx reg1)
+            v                                (+ fetched-data operand)
+            half-sum                         (+ (bit-and 0x0FFF fetched-data) (bit-and 0x0FFF operand))
+            h                                (<= 0x1000 half-sum)
+            c                                (< 0xFFFF v)
+            v'                               (bit-and 0xFFFF v)]
+        (-> ctx
+          (r/write-reg reg1 v')
+          (flags/set-flags {:n 0, :h h, :c c}))))))
 
 (defn- add-8-bit [ctx]
   ctx)

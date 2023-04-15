@@ -80,9 +80,17 @@
                                       0x31 0xAA 0x00 ;; LD SP, 0x00AA
                                       0xE8 0x10      ;; ADD SP 0x10 (16)
                                       0xE8 0xF1      ;; ADD SP 0xF0 (-15)
+                                      0x21 0x01 0x00 ;; LD, HL 0x0001
+                                      0x29           ;; ADD HL, HL (HL=0x0002)
+                                      0x39           ;; ADD HL, SP (HL=0x00AD)
+                                      0x01 0x00 0x01 ;; LD BC, 0x0100
+                                      0x09           ;; ADD HL, BC (HL=0x01AD)
+                                      0x11 0x00 0x02 ;; LD DE, 0x0200
+                                      0x19           ;; ADD HL, DE (HL=0x03AD)
                                       0x76]})]
     (is (:halted (:cpu ctx)))
-    (is (= 0x00AB (r/read-reg ctx :sp)))))
+    (is (= 0x00AB (r/read-reg ctx :sp)))
+    (is (= 0x03AD (r/read-reg ctx :hl)))))
 
 (comment
   (format "%02X" -15)
