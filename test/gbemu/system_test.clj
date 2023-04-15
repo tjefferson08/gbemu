@@ -75,8 +75,20 @@
     (is (= 0x03 (r/read-reg ctx :b)))
     (is (= 0x04 (r/read-reg ctx :c)))))
 
+(deftest ^:integration math-instructions
+  (let [ctx (ctx-with {:instructions [
+                                      0x31 0xAA 0x00 ;; LD SP, 0x00AA
+                                      0xE8 0x10      ;; ADD SP 0x10 (16)
+                                      0xE8 0xF1      ;; ADD SP 0xF0 (-15)
+                                      0x76]})]
+    (is (:halted (:cpu ctx)))
+    (is (= 0x00AB (r/read-reg ctx :sp)))))
+
 (comment
-  (format "%08X"  -69)
+  (format "%02X" -15)
+
+  (int 0xF0)
+
   (unchecked-byte -69)
 
   (format "%08X" (unchecked-byte -69))
@@ -93,7 +105,10 @@
 
 
   (vec (take 0x200 (repeat 0x0)))
+  (bit-test 0x71 7)
 
   (assoc [0 1] 1 9)
+  0x10
+
 
  nil)

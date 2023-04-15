@@ -46,15 +46,18 @@
 ;; 16 bit reg but 8 bit operands
 (defn- add-sp [ctx]
     ;; TODO special signed int handling for SP add
-      (let [sp       (r/read-reg ctx :sp)
+      (let [sp                               (r/read-reg ctx :sp)
             {:keys [cur-instr fetched-data]} (ctx :cpu)
             {:keys [reg1] :as inst}          cur-instr
-            a                                (r/read-reg ctx :a)
-            v        (+ sp fetched-data)
-            half-sum (+ (bit-and 0x0F a) (bit-and 0x0F sp))
-            h        (<= 0x10 half-sum)
-            c        ()]
-       ctx))
+            operand                          (bytes/extend-sign fetched-data)
+            v                                (+ sp operand)
+            half-sum                         (+ (bit-and 0x0F fetched-data) (bit-and 0x0F sp))
+            h                                (<= 0x10 half-sum)
+            c                                (<= 0xFFFF v)
+            v'                               (bit-and 0xFFF v)]
+        (-> ctx
+          (r/write-reg :sp v')
+          (flags/set-flags {:z 0, :n 0, :h h, :c c}))))
 
 (defn- add-16-bit [ctx]
   (let [{:keys [cur-instr fetched-data]} (ctx :cpu)
@@ -62,14 +65,14 @@
         a                                (r/read-reg ctx :a)]
     ;; TODO add 1 cycle for 16 bit reg1
     (if (= :sp reg1)
-      (add-sp)))
-  ctx)
+      (add-sp ctx)
+      ctx)))
 
 (defn- add-8-bit [ctx]
   ctx)
 
 (defn add [ctx]
   (let [reg1 (get-in ctx [:cpu :cur-instr :reg1])]
-    (if (r/sixteen-bit? ctx reg1)
+    (if (r/sixteen-bit? reg1)
       (add-16-bit ctx)
       (add-8-bit ctx))))

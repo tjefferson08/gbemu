@@ -160,6 +160,7 @@
    0xE2 {:type :load, :mode :memloc_register, :reg1 :c, :reg2 :a}
    0xE5 {:type :push, :mode :implied, :reg1 :hl}
    0xE7 {:type :rst, :mode :implied, :param 0x20}
+   0xE8 {:type :add, :mode :register_d8, :reg1 :sp}
    0xE9 {:type :jump, :mode :memloc}
    0xEA {:type :load, :mode :d16_register, :reg2 :a}
    0xEF {:type :rst, :mode :implied, :param 0x28}

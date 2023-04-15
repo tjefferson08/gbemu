@@ -27,6 +27,11 @@
 (defn to-unsigned [x]
   (bit-and x 0xff))
 
+(defn extend-sign [r8]
+  (let [negative?  (bit-test r8 7)
+        signed-d16 (bit-or r8 (if negative? 0xFF00 0x0000))]
+    signed-d16))
+
 (defn ->d16 [lo hi]
   (bit-or (to-unsigned lo) (bit-shift-left (to-unsigned hi) 8)))
 
@@ -41,5 +46,13 @@
 
   (spit "resources/roms/test.gb" "sup")
   (format "%04X" (->d16 0x12 0x34))
+
+  (format "%08X" (bit-shift-left 0xF0 2))
+  (format "%08X" (+ 0xFF00 (bit-shift-left 0xF0 4)))
+
+
+  (bit-shift-left 0xF0 2)
+
+  (int 0xF0)
 
  nil)
