@@ -10,11 +10,14 @@
   [["-r" "--rom ROM" "ROM path"]
    ["-h" "--help"]])
 
+(defn init [rom]
+ {:emu (emu/init)
+  :cartridge (load-cartridge rom)
+  :cpu (cpu/init)
+  :ram (ram/init)})
+
 (defn boot [rom]
-  (emu/run {:emu {:paused false, :running true, :ticks 0}
-            :cartridge (load-cartridge rom)
-            :cpu (cpu/init)
-            :ram (ram/init)}))
+  (emu/run (init rom)))
 
 (defn -main [& args]
   (let [opts (parse-opts args cli-options)]

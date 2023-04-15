@@ -4,6 +4,9 @@
 
 (def TICK_LIMIT 200)
 
+(defn init []
+  {:paused false, :running true, :ticks 0})
+
 ;; Components
 ;; - Cartridge
 ;; - CPU
