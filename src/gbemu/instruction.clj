@@ -138,9 +138,33 @@
    0x85 {:type :add, :mode :register_register, :reg1 :a, :reg2 :l}
    0x86 {:type :add, :mode :register_memloc, :reg1 :a, :reg2 :hl}
    0x87 {:type :add, :mode :register_register, :reg1 :a, :reg2 :a}
+   0x88 {:type :adc, :mode :register_register, :reg1 :a, :reg2 :b}
+   0x89 {:type :adc, :mode :register_register, :reg1 :a, :reg2 :c}
+   0x8A {:type :adc, :mode :register_register, :reg1 :a, :reg2 :d}
+   0x8B {:type :adc, :mode :register_register, :reg1 :a, :reg2 :e}
+   0x8C {:type :adc, :mode :register_register, :reg1 :a, :reg2 :h}
+   0x8D {:type :adc, :mode :register_register, :reg1 :a, :reg2 :l}
+   0x8E {:type :adc, :mode :register_memloc, :reg1 :a, :reg2 :hl}
+   0x8F {:type :adc, :mode :register_register, :reg1 :a, :reg2 :a}
+
+   0x90 {:type :sub, :mode :register_register, :reg1 :a, :reg2 :b}
+   0x91 {:type :sub, :mode :register_register, :reg1 :a, :reg2 :c}
+   0x92 {:type :sub, :mode :register_register, :reg1 :a, :reg2 :d}
+   0x93 {:type :sub, :mode :register_register, :reg1 :a, :reg2 :e}
+   0x94 {:type :sub, :mode :register_register, :reg1 :a, :reg2 :h}
+   0x95 {:type :sub, :mode :register_register, :reg1 :a, :reg2 :l}
+   0x96 {:type :sub, :mode :register_memloc, :reg1 :a, :reg2 :hl}
+   0x97 {:type :sub, :mode :register_register, :reg1 :a, :reg2 :a}
+   0x98 {:type :sbc, :mode :register_register, :reg1 :a, :reg2 :b}
+   0x99 {:type :sbc, :mode :register_register, :reg1 :a, :reg2 :c}
+   0x9A {:type :sbc, :mode :register_register, :reg1 :a, :reg2 :d}
+   0x9B {:type :sbc, :mode :register_register, :reg1 :a, :reg2 :e}
+   0x9C {:type :sbc, :mode :register_register, :reg1 :a, :reg2 :h}
+   0x9D {:type :sbc, :mode :register_register, :reg1 :a, :reg2 :l}
+   0x9E {:type :sbc, :mode :register_memloc, :reg1 :a, :reg2 :hl}
+   0x9F {:type :sbc, :mode :register_register, :reg1 :a, :reg2 :a}
 
    0xAF {:type :xor, :mode :register, :reg1 :a}
-
 
    0xC0 {:type :ret, :mode :implied, :cond :nz}
    0xC1 {:type :pop, :mode :implied, :reg1 :bc}
@@ -154,6 +178,7 @@
    0xCA {:type :jump, :mode :d16, :cond :z}
    0xCC {:type :call, :mode :d16, :cond :z}
    0xCD {:type :call, :mode :d16, :cond :always}
+   0xCE {:type :adc, :mode :register_d8, :reg1 :a}
    0xCF {:type :rst, :mode :implied, :param 0x08}
 
    0xD0 {:type :ret, :mode :implied, :cond :nc}
@@ -161,6 +186,7 @@
    0xD2 {:type :jump, :mode :d16, :cond :nc}
    0xD4 {:type :call, :mode :d16, :cond :nc}
    0xD5 {:type :push, :mode :implied, :reg1 :de}
+   0xD6 {:type :sub, :mode :register_d8, :reg1 :a}
    0xD7 {:type :rst, :mode :implied, :param 0x10}
    0xD8 {:type :ret, :mode :implied, :cond :c}
    0xD9 {:type :ret-i, :mode :implied, :cond :always}

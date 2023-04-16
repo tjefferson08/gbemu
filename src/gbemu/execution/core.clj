@@ -46,6 +46,9 @@
        :rst jump/rst
        :di di
        :add math/add
+       :adc math/adc
+       :sub math/sub
+       :sbc math/sbc
        :xor xor/xor
        :decrement math/decrement
        :increment math/increment
