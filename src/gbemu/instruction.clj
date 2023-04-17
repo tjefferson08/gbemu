@@ -165,11 +165,38 @@
    0x9F {:type :sbc, :mode :register_register, :reg1 :a, :reg2 :a}
 
    0xA0 {:type :and, :mode :register_register, :reg1 :a, :reg2 :b}
+   0xA1 {:type :and, :mode :register_register, :reg1 :a, :reg2 :c}
+   0xA2 {:type :and, :mode :register_register, :reg1 :a, :reg2 :d}
+   0xA3 {:type :and, :mode :register_register, :reg1 :a, :reg2 :e}
+   0xA4 {:type :and, :mode :register_register, :reg1 :a, :reg2 :h}
+   0xA5 {:type :and, :mode :register_register, :reg1 :a, :reg2 :l}
+   0xA6 {:type :and, :mode :register_memloc, :reg1 :a, :reg2 :hl}
+   0xA7 {:type :and, :mode :register_register, :reg1 :a, :reg2 :a}
    0xA8 {:type :xor, :mode :register_register, :reg1 :a, :reg2 :b}
+   0xA9 {:type :xor, :mode :register_register, :reg1 :a, :reg2 :c}
+   0xAA {:type :xor, :mode :register_register, :reg1 :a, :reg2 :d}
+   0xAB {:type :xor, :mode :register_register, :reg1 :a, :reg2 :e}
+   0xAC {:type :xor, :mode :register_register, :reg1 :a, :reg2 :h}
+   0xAD {:type :xor, :mode :register_register, :reg1 :a, :reg2 :l}
+   0xAE {:type :xor, :mode :register_memloc, :reg1 :a, :reg2 :hl}
    0xAF {:type :xor, :mode :register_register, :reg1 :a, :reg2 :a}
 
    0xB0 {:type :or, :mode :register_register, :reg1 :a, :reg2 :b}
+   0xB1 {:type :or, :mode :register_register, :reg1 :a, :reg2 :c}
+   0xB2 {:type :or, :mode :register_register, :reg1 :a, :reg2 :d}
+   0xB3 {:type :or, :mode :register_register, :reg1 :a, :reg2 :e}
+   0xB4 {:type :or, :mode :register_register, :reg1 :a, :reg2 :h}
+   0xB5 {:type :or, :mode :register_register, :reg1 :a, :reg2 :l}
+   0xB6 {:type :or, :mode :register_memloc, :reg1 :a, :reg2 :hl}
+   0xB7 {:type :or, :mode :register_register, :reg1 :a, :reg2 :a}
    0xB8 {:type :cp, :mode :register_register, :reg1 :a, :reg2 :b}
+   0xB9 {:type :cp, :mode :register_register, :reg1 :a, :reg2 :c}
+   0xBA {:type :cp, :mode :register_register, :reg1 :a, :reg2 :d}
+   0xBB {:type :cp, :mode :register_register, :reg1 :a, :reg2 :e}
+   0xBC {:type :cp, :mode :register_register, :reg1 :a, :reg2 :h}
+   0xBD {:type :cp, :mode :register_register, :reg1 :a, :reg2 :l}
+   0xBE {:type :cp, :mode :register_memloc, :reg1 :a, :reg2 :hl}
+   0xBF {:type :cp, :mode :register_register, :reg1 :a, :reg2 :a}
 
    0xC0 {:type :ret, :mode :implied, :cond :nz}
    0xC1 {:type :pop, :mode :implied, :reg1 :bc}
