@@ -35,6 +35,13 @@
 (defn ->d16 [lo hi]
   (bit-or (to-unsigned lo) (bit-shift-left (to-unsigned hi) 8)))
 
+(defn half-sum [op1 op2]
+  (+ (bit-and 0x0F op1) (bit-and 0x0F op2)))
+
+(defn half-diff [op1 op2]
+  (- (bit-and 0x0F op1) (bit-and 0x0F op2)))
+
+
 (defn slice
   "Take a slice (copy) array of byte array `bytes`"
   [bytes from to]

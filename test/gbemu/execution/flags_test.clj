@@ -5,6 +5,17 @@
 
 (def default-ctx {:cpu {:cur-instr nil, :fetched-data 0xA6 :registers {:pc 0x99 :a 0xAA :f 0}}})
 
+(deftest flag-set?
+  (let [ctx-with-z-set    (sut/set-flags default-ctx {:z true})
+        ctx-with-z-unset  (sut/set-flags default-ctx {:z false})
+        byte-with-z-set   (r/read-reg ctx-with-z-set :f)
+        byte-with-z-unset (r/read-reg ctx-with-z-unset :f)]
+    (is (sut/flag-set? ctx-with-z-set :z))
+    (is (sut/flag-set? byte-with-z-set :z))
+    (is (not (sut/flag-set? ctx-with-z-unset :z)))
+    (is (not (sut/flag-set? byte-with-z-unset :z)))))
+
+
 (deftest set-flags
   (let [ctx-ff (assoc-in default-ctx [:cpu :registers :f] 0xFF)
         ctx-00 (assoc-in default-ctx [:cpu :eegisters :f] 0x00)]

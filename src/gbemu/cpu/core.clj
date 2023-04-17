@@ -3,7 +3,8 @@
             [gbemu.bus :as bus]
             [gbemu.execution.core :as exec]
             [gbemu.cpu.fetch :as fetch]
-            [gbemu.cpu.registers :as r]))
+            [gbemu.cpu.registers :as r]
+            [gbemu.execution.flags :as flags]))
 
 (defn init []
   {:registers {:a 0x01, :f 0,
@@ -38,14 +39,18 @@
         ctx'' (fetch/fetch-data ctx')
         ;; _ (println (str "ctx after fetch-data" (:cpu ctx'')))
         pc   (get-in ctx [:cpu :registers :pc])
-        _ (println (format "%04X: %-12s (%02X %02X %02X) A:%02X F:%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X SP:%04X"
+        _ (println (format "%04X - %8d: %-12s (%02X %02X %02X) A:%02X F:%s%s%s%s BC:%02X%02X DE:%02X%02X HL:%02X%02X SP:%04X"
                             pc
+                            (get-in ctx'' [:emu :ticks])
                             (get-in ctx'' [:cpu :cur-instr :type])
                             (get-in ctx'' [:cpu :cur-opcode])
                             (bus/read-bus ctx'' (+ pc 1))
                             (bus/read-bus ctx'' (+ pc 2))
                             (r/read-reg ctx'' :a)
-                            (r/read-reg ctx'' :f)
+                            (if (flags/flag-set? ctx'' :z) "Z" "-")
+                            (if (flags/flag-set? ctx'' :n) "N" "-")
+                            (if (flags/flag-set? ctx'' :h) "H" "-")
+                            (if (flags/flag-set? ctx'' :c) "C" "-")
                             (r/read-reg ctx'' :b)
                             (r/read-reg ctx'' :c)
                             (r/read-reg ctx'' :d)
@@ -60,6 +65,7 @@
 (comment
   (println "sup")
   (format "%02X" (bit-xor 1 1))
+  (format "%s" "z")
 
   (merge-with merge {:cpu {:registers {:a 1 :b 2}}}
          {:cpu {:registers {:b 3}}})

@@ -77,18 +77,12 @@
           (r/write-reg reg1 v')
           (flags/set-flags {:n 0, :h h, :c c}))))))
 
-(defn- half-sum [op1 op2]
-  (+ (bit-and 0x0F op1) (bit-and 0x0F op2)))
-
-(defn- half-diff [op1 op2]
-  (- (bit-and 0x0F op1) (bit-and 0x0F op2)))
-
 (defn- add-8-bit [ctx]
   (let [{:keys [cur-instr fetched-data]} (ctx :cpu)
         {:keys [reg1 reg2] :as inst}     cur-instr
         operand                          (r/read-reg ctx reg1)
         v                                (+ fetched-data operand)
-        half-sum                         (half-sum operand fetched-data)
+        half-sum                         (bytes/half-sum operand fetched-data)
         h                                (<= 0x10 half-sum)
         c                                (< 0xFF v)
         ;; _ (println "carry?" c)
@@ -110,7 +104,7 @@
         v                             (+ fetched-data operand c)
         v'                            (bit-and v 0xFF)
         z                             (zero? v')
-        half-sum                      (+ c (half-sum operand fetched-data))
+        half-sum                      (+ c (bytes/half-sum operand fetched-data))
         h                             (< 0xF half-sum)
         c'                            (< 0xFF v)]
     (-> ctx
@@ -121,7 +115,7 @@
   (let [{:keys [reg1 reg2] :as inst}     cur-instr
         operand                          (r/read-reg ctx reg1)
         v                                (- operand fetched-data)
-        h                                (pos? (half-diff operand fetched-data))
+        h                                (pos? (bytes/half-diff operand fetched-data))
         c                                (neg? v)
         v'                               (bytes/to-unsigned v)]
     (-> ctx
@@ -133,7 +127,7 @@
         operand                          (r/read-reg ctx reg1)
         c                                (if (flags/flag-set? :c) 1 0)
         v                                (- operand fetched-data c)
-        h                                (pos? (- (half-diff operand fetched-data) c))
+        h                                (pos? (- (bytes/half-diff operand fetched-data) c))
         c'                               (neg? v)
         v'                               (bytes/to-unsigned v)]
     (-> ctx

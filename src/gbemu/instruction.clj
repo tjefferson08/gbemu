@@ -164,7 +164,12 @@
    0x9E {:type :sbc, :mode :register_memloc, :reg1 :a, :reg2 :hl}
    0x9F {:type :sbc, :mode :register_register, :reg1 :a, :reg2 :a}
 
-   0xAF {:type :xor, :mode :register, :reg1 :a}
+   0xA0 {:type :and, :mode :register_register, :reg1 :a, :reg2 :b}
+   0xA8 {:type :xor, :mode :register_register, :reg1 :a, :reg2 :b}
+   0xAF {:type :xor, :mode :register_register, :reg1 :a, :reg2 :a}
+
+   0xB0 {:type :or, :mode :register_register, :reg1 :a, :reg2 :b}
+   0xB8 {:type :cp, :mode :register_register, :reg1 :a, :reg2 :b}
 
    0xC0 {:type :ret, :mode :implied, :cond :nz}
    0xC1 {:type :pop, :mode :implied, :reg1 :bc}

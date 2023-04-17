@@ -118,8 +118,45 @@
     (is (not (flags/flag-set? ctx-8-bit-add :z)))
     (is (flags/flag-set? ctx-8-bit-add :c))))
 
+(deftest ^:integration logic-instructions
+  (let [ctx-logic (ctx-with {:instructions [
+                                            0x31 0xFF 0xDF ;; LD SP, 0xDFFF
+
+                                            0x3E 0xAA      ;; LD A, 0xAA     (0b1010_1010)
+                                            0x06 0xC6      ;; LD B, 0xC6     (0b1100_0110)
+                                            0xA0           ;; AND B (A=0x82) (0b1000_0010)
+                                            0xEA 0x00 0xC0 ;; LD $(0xC000),A
+
+                                            0xB0           ;; OR B  (A=0xC6)
+                                            0xEA 0x01 0xC0 ;; LD $(0xC001),A
+
+                                            0x3E 0xAA      ;; LD A, 0xAA      (0b1010_1010)
+                                            0x06 0xC6      ;; LD B, 0xC6      (0b1100_0110)
+                                            0xA8           ;; XOR B (A=0x6C)  (0b0110_1100)
+                                            0xEA 0x02 0xC0 ;; LD $(0xC002),A
+
+                                            0xB8           ;; CP B
+                                            0xEA 0x03 0xC0 ;; LD $(0xC003),A
+
+                                            ;; Store flags into memory (roundabout via stack)
+                                            0xF5           ;; PUSH AF
+                                            0xC1           ;; POP BC
+                                            0x79           ;; LD A,C
+                                            0xEA 0x01 0xD0 ;; LD $(0xD001),A
+                                            0x76]})]
+    (is (= 0x82 (bus/read-bus ctx-logic 0xC000)))
+    (is (= 0xC6 (bus/read-bus ctx-logic 0xC001)))
+    (is (= 0x6C (bus/read-bus ctx-logic 0xC002)))
+    (is (= 0x6C (bus/read-bus ctx-logic 0xC003)))
+    (let [f-after-cp (bus/read-bus ctx-logic 0xD001)]
+      (is (not (flags/flag-set? f-after-cp :z)))
+      (is (flags/flag-set? f-after-cp :c))
+      (is (flags/flag-set? f-after-cp :n))
+      (is (not (flags/flag-set? f-after-cp :h))))))
+
 (comment
-  (format "%02X" -15)
+  (format "%02X" (bit-xor 0xAA 0xC6))
+  (format "%02X" 2r11000110)
 
   (int 0xF0)
 
@@ -127,7 +164,7 @@
 
   (format "%08X" (unchecked-byte -69))
   (format "%04X" (unchecked-byte 187))
-  (format "%04X" 187)
+  (format "%04X" (bit-and 0xC3 0x75))
 
   (aset-byte (byte-array 10) 2 3 4 5)
 
