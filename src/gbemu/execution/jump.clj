@@ -18,12 +18,13 @@
 (defn- jump*
   ([ctx addr] (jump* ctx addr false))
   ([ctx addr push-pc]
-   (if (check-cond ctx)
-     (let [pc (r/read-reg ctx :pc)
-           ctx' (if push-pc (stack/push-16 ctx pc) ctx) ;; TODO 2 more cycles with a push
-           new-pc addr]
-       ;; emu/cycles 1())
-       (r/write-reg ctx' :pc new-pc)))))
+   (let [pc (r/read-reg ctx :pc)]
+     (if (check-cond ctx)
+       (let [ctx' (if push-pc (stack/push-16 ctx pc) ctx) ;; TODO 2 more cycles with a push
+             new-pc addr]
+         ;; emu/cycles 1())
+         (r/write-reg ctx' :pc new-pc))
+       ctx))))
 
 
 (defn jump [ctx]
@@ -33,8 +34,11 @@
   (jump* ctx (get-in ctx [:cpu :fetched-data]) true))
 
 (defn jump-rel [ctx]
-  (let [offset (get-in ctx [:cpu :fetched-data])]
-    (jump* ctx (+ (r/read-reg ctx :pc) offset) false)))
+  (let [offset (get-in ctx [:cpu :fetched-data])
+        ;; _ (println "ctx" (:cpu ctx))
+        ctx'  (jump* ctx (+ (r/read-reg ctx :pc) offset) false)]
+        ;; _ (println "ctx'" (:cpu ctx'))]
+    ctx'))
 
 (defn ret [ctx]
   ;; emu cycles 1 if cond not= none)

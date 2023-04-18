@@ -33,7 +33,8 @@
       (> 0xFF00 address) (throw (Exception. "Reserved - Unusable"))
 
       ;; 0xFF00 - 0xFF7F : I/O Registers
-      (> 0xFF00 address) (throw (Exception. "I/O Registers: Not yet implemented TODO"))
+      (> 0xFF80 address) (let [_ (println "I/O Registers: Not yet implemented TODO")]
+                            0xAA)
 
       ;; 0xFF80 - 0xFFFE : high RAM
       (> 0xFFFF address) (ram/w-read ctx address)

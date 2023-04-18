@@ -6,7 +6,7 @@
 
 (defn w-read [ctx address]
   (let [addr (- address 0xC000)]
-    (if (> addr 0x2000)
+    (if (>= addr 0x2000)
       (throw (Exception. (format "Invalid WRAM address %08X" address)))
       (get-in ctx [:ram :wram addr]))))
 

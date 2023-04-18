@@ -155,22 +155,71 @@
       (is (not (flags/flag-set? f-after-cp :h))))))
 
 (deftest ^:integration rotate-shift-instructions
-  (let [ctx-rlc-1 (ctx-with {:instructions [
-                                            0x31 0xFF 0xDF ;; LD SP, 0xDFFF
-
-                                            0x06 0xC6      ;; LD B, 0xC6 (0b1100_0110)
-                                            0xCB 0x00      ;; RLC B C=0x8D
+  (let [ctx-rlc-1 (ctx-with {:instructions [0x06 0xC6      ;; LD B, 0xC6 (0b1100_0110)
+                                            0xCB 0x00      ;; RLC B B=0x8D
                                             0x78           ;; LD A,B
                                             0xEA 0x00 0xC0 ;; LD $(0xC000),A
-
                                             0x76]})]
     (is (= 0x8D (bus/read-bus ctx-rlc-1 0xC000)))
-    (is (not (flags/flag-set? ctx-rlc-1 :z)))
-    (is (flags/flag-set? ctx-rlc-1 :c))
-    (is (not (flags/flag-set? ctx-rlc-1 :n)))
-    (is (not (flags/flag-set? ctx-rlc-1 :h)))))
+    (is (= {:z false, :n false :h false, :c true} (flags/all ctx-rlc-1))))
+
+  (let [ctx-rrc-1 (ctx-with {:instructions [0x0E 0xC7      ;; LD C, 0xC7 (0b1100_0111)
+                                            0xCB 0x09      ;; RRC C C=0xE3
+                                            0x79           ;; LD A,C
+                                            0xEA 0x00 0xC0 ;; LD $(0xC000),A
+                                            0x76]})]
+    (is (= 0xE3 (bus/read-bus ctx-rrc-1 0xC000)))
+    (is (= {:z false, :n false :h false, :c true} (flags/all ctx-rrc-1))))
+
+  (let [ctx-rl-1 (ctx-with {:instructions [0x16 0xC7      ;; LD D, 0xC7 (0b1100_0111)
+                                           0xCB 0x12      ;; RL D D=0x8E
+                                           0x7A           ;; LD A,B
+                                           0xEA 0x00 0xC0 ;; LD $(0xC000),A
+                                           0x76]})]
+    (is (= 0x8E (bus/read-bus ctx-rl-1 0xC000)))
+    (is (= {:z false, :n false :h false, :c true} (flags/all ctx-rl-1))))
+
+  (let [ctx-rr-1 (ctx-with {:instructions [0x1E 0xC7      ;; LD E, 0xC7 (0b1100_0111)
+                                           0xCB 0x1B      ;; RR E D=0x63
+                                           0x7B           ;; LD A,E
+                                           0xEA 0x00 0xC0 ;; LD $(0xC000),A
+                                           0x76]})]
+    (is (= 0x63 (bus/read-bus ctx-rr-1 0xC000)))
+    (is (= {:z false, :n false :h false, :c true} (flags/all ctx-rr-1))))
+
+  (let [ctx-sla-1 (ctx-with {:instructions [0x26 0xC7      ;; LD H, 0xC7 (0b1100_0111)
+                                            0xCB 0x24      ;; SLA H H=0x8E
+                                            0x7C           ;; LD A,H
+                                            0xEA 0x00 0xC0 ;; LD $(0xC000),A
+                                            0x76]})]
+    (is (= 0x8E (bus/read-bus ctx-sla-1 0xC000)))
+    (is (= {:z false, :n false :h false, :c true} (flags/all ctx-sla-1))))
+
+  (let [ctx-sra-1 (ctx-with {:instructions [0x2E 0xC7      ;; LD H, 0xC7 (0b1100_0111)
+                                            0xCB 0x2D      ;; SLA L L=0xE3
+                                            0x7D           ;; LD A,L
+                                            0xEA 0x00 0xC0 ;; LD $(0xC000),A
+                                            0x76]})]
+    (is (= 0xE3 (bus/read-bus ctx-sra-1 0xC000)))
+    (is (= {:z false, :n false :h false, :c true} (flags/all ctx-sra-1))))
+
+ (let [ctx-swap-1 (ctx-with {:instructions [0x21 0x00 0xC0 ;; LD HL, 0xC000
+                                            0x36 0xA6      ;; LD $(HL), 0xA6
+                                            0xCB 0x36      ;; SWAP $(HL) $(HL)=0x6A
+                                            0x76]})]
+   (is (= 0x6A (bus/read-bus ctx-swap-1 0xC000)))
+   (is (= {:z false, :n false :h false, :c false} (flags/all ctx-swap-1))))
+
+ (let [ctx-srl-1 (ctx-with {:instructions [0x3E 0xC2      ;; LD A, 0xC2   (0b1100_0011)
+                                           0xCB 0x3F      ;; SRL A A=0x61 (0b0110_0001)
+                                           0xEA 0x00 0xC0 ;; LD $(0xC000),A
+                                           0x76]})]
+   (is (= 0x61 (bus/read-bus ctx-srl-1 0xC000)))
+   (is (= {:z false, :n false :h false, :c false} (flags/all ctx-srl-1)))))
 
 (comment
+  (format "%04X" 194)
+
   (format "%02X" (bit-xor 0xAA 0xC6))
   (format "%02X" 2r11000110)
 
@@ -179,7 +228,7 @@
   (unchecked-byte -69)
 
   (format "%08X" (unchecked-byte -69))
-  (format "%04X" (unchecked-byte 187))
+
   (format "%04X" (bit-and 0xC3 0x75))
 
   (aset-byte (byte-array 10) 2 3 4 5)

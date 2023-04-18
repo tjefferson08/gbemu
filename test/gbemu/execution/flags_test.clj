@@ -15,6 +15,11 @@
     (is (not (sut/flag-set? ctx-with-z-unset :z)))
     (is (not (sut/flag-set? byte-with-z-unset :z)))))
 
+(deftest all
+  (let [all-unset default-ctx
+        all-set   (r/write-reg default-ctx :f 0xF0)]
+   (is (= {:z true, :n true, :h true, :c true} (sut/all all-set)))
+   (is (= {:z false, :n false, :h false, :c false} (sut/all all-unset)))))
 
 (deftest set-flags
   (let [ctx-ff (assoc-in default-ctx [:cpu :registers :f] 0xFF)
