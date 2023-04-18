@@ -154,6 +154,22 @@
       (is (flags/flag-set? f-after-cp :n))
       (is (not (flags/flag-set? f-after-cp :h))))))
 
+(deftest ^:integration rotate-shift-instructions
+  (let [ctx-rlc-1 (ctx-with {:instructions [
+                                            0x31 0xFF 0xDF ;; LD SP, 0xDFFF
+
+                                            0x06 0xC6      ;; LD B, 0xC6 (0b1100_0110)
+                                            0xCB 0x00      ;; RLC B C=0x8D
+                                            0x78           ;; LD A,B
+                                            0xEA 0x00 0xC0 ;; LD $(0xC000),A
+
+                                            0x76]})]
+    (is (= 0x8D (bus/read-bus ctx-rlc-1 0xC000)))
+    (is (not (flags/flag-set? ctx-rlc-1 :z)))
+    (is (flags/flag-set? ctx-rlc-1 :c))
+    (is (not (flags/flag-set? ctx-rlc-1 :n)))
+    (is (not (flags/flag-set? ctx-rlc-1 :h)))))
+
 (comment
   (format "%02X" (bit-xor 0xAA 0xC6))
   (format "%02X" 2r11000110)

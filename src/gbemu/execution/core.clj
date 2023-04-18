@@ -7,7 +7,8 @@
             [gbemu.execution.dec :as dec]
             [gbemu.execution.jump :as jump]
             [gbemu.execution.math :as math]
-            [gbemu.execution.logic :as logic]))
+            [gbemu.execution.logic :as logic]
+            [gbemu.execution.cb :as cb]))
 
 (defn- none [ctx]
   (throw (Exception. "No instruction! Fail")))
@@ -53,6 +54,7 @@
        :or logic/or
        :xor logic/xor
        :cp logic/cp
+       :cb cb/cb-prefix
        :decrement math/decrement
        :increment math/increment
        :load load/load

@@ -208,6 +208,7 @@
    0xC8 {:type :ret, :mode :implied, :cond :z}
    0xC9 {:type :ret, :mode :implied, :cond :always}
    0xCA {:type :jump, :mode :d16, :cond :z}
+   0xCB {:type :cb, :mode :d8}
    0xCC {:type :call, :mode :d16, :cond :z}
    0xCD {:type :call, :mode :d16, :cond :always}
    0xCE {:type :adc, :mode :register_d8, :reg1 :a}
