@@ -21,7 +21,7 @@
         [v ctx'] (if (= mode :meml) (inc-mem ctx) (inc-reg ctx))]
     (if (= 0x03 (bit-and 0x03 cur-opcode))
       ctx'
-      (flags/set-flags ctx {:z (zero? v), :n false, :h (zero? (bit-and 0x0F))}))))
+      (flags/set-flags ctx {:z (zero? v), :n false, :h (zero? (bit-and 0x0F v))}))))
 
 (defn decrement [ctx]
   (let [cur-instr                    (get-in ctx [:cpu :cur-instr])
@@ -40,7 +40,7 @@
         [v ctx'] (if (= mode :meml) (dec-mem ctx) (dec-reg ctx))]
     (if (= 0x0B (bit-and 0x0B cur-opcode))
       ctx'
-      (flags/set-flags ctx {:z (zero? v), :n true, :h (= 0x0F (bit-and 0x0F))}))))
+      (flags/set-flags ctx {:z (zero? v), :n true, :h (= 0x0F (bit-and 0x0F v))}))))
 
 
 ;; 16 bit reg but 8 bit operands

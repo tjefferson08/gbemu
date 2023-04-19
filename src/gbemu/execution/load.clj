@@ -23,7 +23,7 @@
 (defn load-high-ram [ctx]
   (let [{:keys [cur-instr fetched-data mem_dest]} (:cpu ctx)
         {:keys [reg1 reg2]}              cur-instr
-        _ (println "load-h ctx" (:cpu ctx))
+        ;; _ (println "load-h ctx" (:cpu ctx))
         ctx'                             (if (= reg1 :a)
                                            (r/write-reg ctx reg1 (bus/read-bus ctx (bit-or 0xFF00 fetched-data)))
                                            (bus/write-bus ctx mem_dest (r/read-reg ctx reg2)))]
@@ -31,6 +31,6 @@
     (assoc-in ctx' [:cpu :emu-cycles] 1)))
 
 (comment
-  (format "%04X" 57343)
+  (format "%04X" (- 0xFF00 0xC000))
 
  ,)

@@ -89,15 +89,31 @@
            (-> ctx (write-for op v')
                    (flags/set-flags {:z (zero? v'), :n false, :h false, :c c})))))))
 
+(defn bit-op-for [op]
+  (let [op-bits (bit-and 2r11 (bit-shift-right op 6))
+        bit-n   (bit-and 2r111 (bit-shift-right op 3))]
+    (case op-bits
+      1 (fn bit [ctx v]
+          (let [mask (bit-set 0 bit-n)
+                v'   (bit-and v mask)]
+            (flags/set-flags ctx {:z (zero? v'), :n false, :h true})))
+      2 (fn res [ctx v]
+          (let [mask (bit-clear 0xFF bit-n)
+                v'   (bit-and v mask)]
+            (-> ctx (write-for op v'))))
+      3 (fn set [ctx v]
+          (let [mask (bit-set 0 bit-n)
+                v'   (bit-or v mask)]
+            (-> ctx (write-for op v')))))))
 
 (defn cb-prefix [{{:keys [cur-instr fetched-data]} :cpu :as ctx}]
   (let [op fetched-data
         in (read-for ctx op)
-        handler (rotate-shift-op-for op)
+        handler (if (< op 0x40) (rotate-shift-op-for op) (bit-op-for op))
         ctx' (handler ctx in)]
     ctx'))
 
 (comment
-  (format "%02X" 194)
+  (format "%02X" (bit-and 2r111 (bit-shift-right 0xB0 3)))
 
  ,)

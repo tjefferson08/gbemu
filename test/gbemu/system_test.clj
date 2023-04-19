@@ -217,6 +217,29 @@
    (is (= 0x61 (bus/read-bus ctx-srl-1 0xC000)))
    (is (= {:z false, :n false :h false, :c false} (flags/all ctx-srl-1)))))
 
+(deftest ^:integration bit-instructions
+  (let [ctx-bit-1 (ctx-with {:instructions [0x06 0xC6      ;; LD B, 0xC6 (0b1100_0110)
+                                            0xCB 0x40      ;; BIT 0, B
+                                            0x76]})
+
+        ctx-bit-2 (ctx-with {:instructions [0x3E 0xC6      ;; LD A, 0xC6 (0b1100_0161)
+                                            0xCB 0x4F      ;; BIT 1,A
+                                            0x76]})]
+   (is (= {:z true, :n false :h true, :c false} (flags/all ctx-bit-1)))
+   (is (= {:z false, :n false :h true, :c false} (flags/all ctx-bit-2))))
+
+  (let [ctx-res-1 (ctx-with {:instructions [0x21 0x00 0xC0 ;; LD HL, 0xC000
+                                            0x36 0xE6      ;; LD $(HL), 0xE6 = 2r11100110
+                                            0xCB 0xB6      ;; RES 6,$(HL) $(HL)=0xA6 2r10100110
+                                            0x76]})]
+    (is (= 0xA6 (bus/read-bus ctx-res-1 0xC000))))
+
+  (let [ctx-set-1 (ctx-with {:instructions [0x21 0x00 0xC0 ;; LD HL, 0xC000
+                                            0x36 0xE6      ;; LD $(HL), 0xE6 = 2r11100110
+                                            0xCB 0xE6      ;; RES 6,$(HL) $(HL)=0xA6 2r10100110
+                                            0x76]})]
+    (is (= 0xF6 (bus/read-bus ctx-set-1 0xC000)))))
+
 (comment
   (format "%04X" 194)
 

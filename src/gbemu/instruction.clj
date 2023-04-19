@@ -204,6 +204,7 @@
    0xC3 {:type :jump, :mode :d16, :cond :always}
    0xC4 {:type :call, :mode :d16, :cond :nz}
    0xC5 {:type :push, :mode :implied, :reg1 :bc}
+   0xC6 {:type :add, :mode :register_d8, :reg1 :a}
    0xC7 {:type :rst, :mode :implied, :param 0x00}
    0xC8 {:type :ret, :mode :implied, :cond :z}
    0xC9 {:type :ret, :mode :implied, :cond :always}
@@ -245,6 +246,7 @@
    0xF7 {:type :rst, :mode :implied, :param 0x30}
    0xF8 {:type :load, :mode :register_sp-plus-r8, :reg1 :hl}
    0xFA {:type :load, :mode :register_a16, :reg1 :a}
+   0xFE {:type :cp, :mode :register_d8, :reg1 :a}
    0xFF {:type :rst, :mode :implied, :param 0x38}})
 
 (defn for-opcode [opcode]
