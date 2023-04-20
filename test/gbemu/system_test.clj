@@ -240,8 +240,46 @@
                                             0x76]})]
     (is (= 0xF6 (bus/read-bus ctx-set-1 0xC000)))))
 
+(deftest ^:integration other-rotate-instructions
+  (let [ctx-rlca-1 (ctx-with {:instructions [0x3E 0xC6   ;; LD A, 0xC6 (0b1100_0110)
+                                             0x07        ;; RLCA
+                                             0x76]})
+
+        ctx-rrca-1 (ctx-with {:instructions [0x3E 0xC6   ;; LD A, 0xC6 (0b1100_0110)
+                                             0x0F        ;; RRCA
+                                             0x76]})
+
+        ctx-rla-1 (ctx-with {:instructions [0x3E 0xC6   ;; LD A, 0xC6 (0b1100_0110)
+                                            0x17        ;; RLA
+                                            0x76]})
+
+        ctx-rra-1 (ctx-with {:instructions [0x3E 0xC6   ;; LD A, 0xC6 (0b1100_0110)
+                                            0x1F        ;; RRA
+                                            0x76]})]
+
+    (is (= 0x8D (r/read-reg ctx-rlca-1 :a)))
+    (is (= 0x63 (r/read-reg ctx-rrca-1 :a)))
+    (is (= 0x8C (r/read-reg ctx-rla-1 :a)))
+    (is (= 0x63 (r/read-reg ctx-rra-1 :a)))))
+
+(deftest ^:integration daa
+  (let [ctx-daa-1 (ctx-with {:instructions [0x3E 0xCA   ;; LD A, 0xCA (0b1100_1010)
+                                            0x27        ;; DAA
+                                            0x76]})]
+    (is (= 0xD0 (r/read-reg ctx-daa-1 :a)))
+    (is (= {:z false, :n false, :h false, :c false}
+           (flags/all ctx-daa-1)))))
+
+(deftest ^:integration cpl
+  (let [ctx-cpl-1 (ctx-with {:instructions [0x3E 0xCA   ;; LD A, 0xCA (0b1100_1010)
+                                            0x2F        ;; CPL
+                                            0x76]})]
+    (is (= 0x35 (r/read-reg ctx-cpl-1 :a)))
+    (is (= {:z false, :n true, :h true, :c false}
+           (flags/all ctx-cpl-1)))))
+
 (comment
-  (format "%04X" 194)
+  (format "%04X" 99)
 
   (format "%02X" (bit-xor 0xAA 0xC6))
   (format "%02X" 2r11000110)

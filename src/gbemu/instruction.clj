@@ -9,6 +9,7 @@
    0x04 {:type :increment, :mode :register :reg1 :b}
    0x05 {:type :decrement, :mode :register, :reg1 :b}
    0x06 {:type :load, :mode :register_d8, :reg1 :b}
+   0x07 {:type :rlca, :mode :register, :reg1 :a}
    0x08 {:type :load, :mode :a16_register, :reg2 :sp}
    0x09 {:type :add, :mode :register_register, :reg1 :hl, :reg2 :bc}
    0x0A {:type :load, :mode :register_memloc, :reg1 :a, :reg2 :bc}
@@ -16,6 +17,7 @@
    0x0C {:type :increment, :mode :register :reg1 :c}
    0x0D {:type :decrement, :mode :register, :reg1 :c}
    0x0E {:type :load, :mode :register_d8, :reg1 :c}
+   0x0F {:type :rrca, :mode :register, :reg1 :a}
 
    0x11 {:type :load, :mode :register_d16, :reg1 :de}
    0x12 {:type :load, :mode :memloc_register, :reg1 :de, :reg2 :a}
@@ -23,6 +25,7 @@
    0x14 {:type :increment, :mode :register :reg1 :d}
    0x15 {:type :decrement, :mode :register, :reg1 :d}
    0x16 {:type :load, :mode :register_d8, :reg1 :d}
+   0x17 {:type :rla, :mode :register, :reg1 :a}
    0x18 {:type :jump-rel, :mode :d8, :cond :always}
    0x19 {:type :add, :mode :register_register, :reg1 :hl, :reg2 :de}
    0x1A {:type :load, :mode :register_memloc, :reg1 :a, :reg2 :de}
@@ -30,6 +33,7 @@
    0x1C {:type :increment, :mode :register :reg1 :e}
    0x1D {:type :decrement, :mode :register, :reg1 :e}
    0x1E {:type :load, :mode :register_d8, :reg1 :e}
+   0x1F {:type :rra, :mode :register, :reg1 :a}
 
    0x20 {:type :jump-rel, :mode :d8, :cond :nz}
    0x21 {:type :load, :mode :register_d16, :reg1 :hl}
@@ -38,6 +42,7 @@
    0x24 {:type :increment, :mode :register :reg1 :h}
    0x25 {:type :decrement, :mode :register, :reg1 :h}
    0x26 {:type :load, :mode :register_d8, :reg1 :h}
+   0x27 {:type :daa, :mode :register, :reg1 :a}
    0x28 {:type :jump-rel, :mode :d8, :cond :z}
    0x29 {:type :add, :mode :register_register, :reg1 :hl, :reg2 :hl}
    0x2A {:type :load, :mode :register_memloc+, :reg1 :a, :reg2 :hl}
@@ -45,6 +50,7 @@
    0x2C {:type :increment, :mode :register :reg1 :l}
    0x2D {:type :decrement, :mode :register, :reg1 :l}
    0x2E {:type :load, :mode :register_d8, :reg1 :l}
+   0x2F {:type :cpl, :mode :register, :reg1 :a}
 
    0x30 {:type :jump-rel, :mode :d8, :cond :nc}
    0x31 {:type :load, :mode :register_d16, :reg1 :sp}

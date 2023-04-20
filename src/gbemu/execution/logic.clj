@@ -30,3 +30,43 @@
         hd   (bytes/half-diff a res)]
     (-> ctx
         (flags/set-flags {:z (zero? res), :n 1, :h (neg? hd), :c (neg? res)}))))
+
+(defn rlca [ctx]
+  (let [v   (r/read-reg ctx :a)
+        c   (bit-test v 7)
+        v'  (bit-and 0xFF (bit-shift-left v 1))
+        v'' (if c (bit-set v' 0) v')]
+    (-> ctx
+        (r/write-reg :a v'')
+        (flags/set-flags {:z false, :n false, :h false, :c c}))))
+
+
+(defn rla [ctx]
+  (let [v   (r/read-reg ctx :a)
+        c   (flags/flag-set? ctx :c)
+        c'  (bit-test v 7)
+        v'  (bit-and 0xFF (bit-shift-left v 1))
+        v'' (if c (bit-set v' 0) v')]
+    (-> ctx
+        (r/write-reg :a v'')
+        (flags/set-flags {:z false, :n false, :h false, :c c'}))))
+
+
+(defn rrca [ctx]
+  (let [v   (r/read-reg ctx :a)
+        c  (bit-test v 0)
+        v'  (bit-and 0xFF (bit-shift-right v 1))
+        v'' (if c (bit-set v' 7) v')]
+    (-> ctx
+        (r/write-reg :a v'')
+        (flags/set-flags {:z false, :n false, :h false, :c c}))))
+
+(defn rra [ctx]
+  (let [v   (r/read-reg ctx :a)
+        c   (flags/flag-set? ctx :c)
+        c'  (bit-test v 7)
+        v'  (bit-and 0xFF (bit-shift-right v 1))
+        v'' (if c (bit-set v' 7) v')]
+    (-> ctx
+        (r/write-reg :a v'')
+        (flags/set-flags {:z false, :n false, :h false, :c c'}))))

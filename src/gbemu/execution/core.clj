@@ -8,7 +8,9 @@
             [gbemu.execution.jump :as jump]
             [gbemu.execution.math :as math]
             [gbemu.execution.logic :as logic]
-            [gbemu.execution.cb :as cb]))
+            [gbemu.execution.cb :as cb]
+            [gbemu.execution.flags :as flags]
+            [gbemu.bytes :as bytes]))
 
 (defn- none [ctx]
   (throw (Exception. "No instruction! Fail")))
@@ -33,8 +35,36 @@
         ;; _ (println "ctx after push" (:cpu ctx'))]
     ctx'))
 
+(defn- stop [ctx]
+  (throw (Exception. "STOP instruction")))
+
 (defn- halt [ctx]
   (assoc-in ctx [:cpu :halted] true))
+
+(defn daa [ctx]
+  (let [c (flags/flag-set? ctx :c)
+        n (flags/flag-set? ctx :n)
+        a (r/read-reg ctx :a)
+        [c' v] (cond
+                 (or c (and (not n) (< 9 (bit-and 0x0F a)))) [false 6]
+                 (or c (and (not n) (< 0x99 a)))             [true 0x60]
+                 :else                                       [false 0])
+        v' (bytes/to-unsigned (if n (- a v) (+ a v)))]
+     (-> ctx (r/write-reg :a v')
+             (flags/set-flags {:z (zero? v'), :h false, :c c'}))))
+
+(defn- cpl [ctx]
+  (let [a (r/read-reg ctx :a)]
+     (-> ctx (r/write-reg :a (bit-xor 0xFF a))
+             (flags/set-flags {:n true, :h true}))))
+
+
+(defn- scf [ctx]
+   (flags/set-flags {:n false, :h false, :c false}))
+
+(defn- ccf [ctx]
+  (let [c (flags/flag-set? ctx :c)]
+   (flags/set-flags {:n false, :h false, :c (not c)})))
 
 (defn by-instruction [op]
   (op {:none none
@@ -54,13 +84,22 @@
        :or logic/or
        :xor logic/xor
        :cp logic/cp
+       :rlca logic/rlca
+       :rrca logic/rrca
+       :rla logic/rla
+       :rra logic/rra
        :cb cb/cb-prefix
+       :daa daa
+       :cpl cpl
+       :scf scf
+       :ccf ccf
        :decrement math/decrement
        :increment math/increment
        :load load/load
        :pop pop
        :push push
        :halt halt
+       :stop stop
        :loadh load/load-high-ram}))
 
 (defn execute [ctx]

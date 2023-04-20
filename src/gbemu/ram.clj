@@ -36,4 +36,7 @@
 
   (assoc (vector-of :byte 0x00 0x00 0x00) 2 (unchecked-byte 0xFF))
 
- nil)
+
+  (format "%08X" (- 0xff44 0xc000))
+
+ ,)
