@@ -18,6 +18,7 @@
    :cur-opcode 0,
    :cur-instr nil
    :halted false
+   :stopped false
    :stepping false
    :int-master-enabled false
    :enabling-ime false
@@ -82,7 +83,11 @@
       (get-in ctx [:cpu :enabling-ime])       (assoc-in ctx' [:cpu :int-master-enabled] true)
       :else                                   ctx')))
 
-     
+(defn run [ctx]
+  (loop [ctx' ctx]
+    (if (get-in ctx' [:cpu :stopped])
+      ctx'
+      (recur (step ctx')))))
 
 (comment
   (println "sup")

@@ -36,7 +36,7 @@
     ctx'))
 
 (defn- stop [ctx]
-  (assoc-in ctx [:emu :running] false))
+  (assoc-in ctx [:cpu :stopped] true))
 
 (defn- halt [ctx]
   (assoc-in ctx [:cpu :halted] true))

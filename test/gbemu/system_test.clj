@@ -4,7 +4,8 @@
             [gbemu.bytes :as bytes]
             [gbemu.cpu.registers :as r]
             [gbemu.bus :as bus]
-            [gbemu.execution.flags :as flags]))
+            [gbemu.execution.flags :as flags]
+            [gbemu.cpu.core :as cpu]))
 
 (defn build-rom-vec [instructions regions]
   (let [header-bytes (bytes/slurp-bytes "resources/roms/header-only.gb")
@@ -19,8 +20,9 @@
 (defn ctx-with [{:keys [instructions regions]}]
   (let [rom-file     (clojure.java.io/file "/tmp/tempfile-rom.gb")
         new-rom-bytes (byte-array (build-rom-vec instructions regions))
-        _            (bytes/spit-bytes rom-file new-rom-bytes)]
-     (sut/boot rom-file)))
+        _            (bytes/spit-bytes rom-file new-rom-bytes)
+        ctx          (sut/init rom-file)]
+     (cpu/run ctx)))
 
 (deftest ^:integration stack-operations
   (let [ctx (ctx-with {:instructions [
@@ -35,7 +37,6 @@
                                       0xE1           ;; POP HL (gets 0xDDEE)
                                       0xD1           ;; POP DE (gets 0xBBCC)
                                       0x10]})]    ;; STOP
-    (is (not (:running (:emu ctx))))
 
     (is (= 0xDFFF (r/read-reg ctx :sp)))
 
