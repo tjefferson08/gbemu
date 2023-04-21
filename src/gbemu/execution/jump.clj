@@ -35,8 +35,9 @@
 
 (defn jump-rel [ctx]
   (let [offset (get-in ctx [:cpu :fetched-data])
+        new-pc (bytes/to-u16 (+ (r/read-reg ctx :pc) (bytes/extend-sign offset)))
         ;; _ (println "ctx" (:cpu ctx))
-        ctx'  (jump* ctx (+ (r/read-reg ctx :pc) offset) false)]
+        ctx'  (jump* ctx new-pc false)]
         ;; _ (println "ctx'" (:cpu ctx'))]
     ctx'))
 

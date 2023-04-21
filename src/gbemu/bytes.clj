@@ -27,6 +27,12 @@
 (defn to-unsigned [x]
   (bit-and x 0xff))
 
+(defn to-u8 [x]
+  (bit-and x 0xff))
+
+(defn to-u16 [x]
+  (bit-and x 0xFFFF))
+
 (defn extend-sign [r8]
   (let [negative?  (bit-test r8 7)
         signed-d16 (bit-or r8 (if negative? 0xFF00 0x0000))]
