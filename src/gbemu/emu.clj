@@ -2,7 +2,7 @@
   (:require [gbemu.cartridge :as cart]
             [gbemu.cpu.core :as cpu]))
 
-(def TICK_LIMIT 200)
+(def TICK_LIMIT 100100)
 
 (defn init []
   {:paused false, :running true, :ticks 0})

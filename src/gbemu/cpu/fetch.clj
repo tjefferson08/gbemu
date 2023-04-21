@@ -64,6 +64,14 @@
                          :dest_is_mem true
                          :registers (r-update :pc (+ 2 pc))})
 
+        :register_a16 (let [lo  (bus/read-bus ctx pc)
+                            hi  (bus/read-bus ctx (inc pc))
+                            a16 (bit-or (bit-and 0x00FF lo) (bit-and 0xFF00 (bit-shift-left hi 8)))]
+                        {:emu-cycles 2
+                         ;; TODO unchecked byte to truncate
+                         :fetched-data (bus/read-bus ctx a16)
+                         :registers (r-update :pc (+ 2 pc))})
+
         (:d16 :register_d16) (let [lo  (bus/read-bus ctx pc)
                                    hi  (bus/read-bus ctx (inc pc))
                                    d16 (bit-or (bit-and 0x00FF lo) (bit-and 0xFF00 (bit-shift-left hi 8)))]

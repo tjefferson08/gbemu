@@ -247,6 +247,7 @@
    0xE3 :none
    0xE4 :none
    0xE5 {:type :push, :mode :implied, :reg1 :hl}
+   0xE6 {:type :and, :mode :register_d8, :reg1 :a}
    0xE7 {:type :rst, :mode :implied, :param 0x20}
    0xE8 {:type :add, :mode :register_d8, :reg1 :sp}
    0xE9 {:type :jump, :mode :memloc}
