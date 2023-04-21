@@ -20,7 +20,9 @@
    :halted false
    :stepping false
    :int-master-enabled false
-   :ie-register 0x00})
+   :enabling-ime false
+   :ie-register 0x00
+   :int-flags 0x00})
 
 (defn fetch-instruction [ctx]
   (let [pc (get-in ctx [:cpu :registers :pc])
@@ -31,7 +33,13 @@
                            :cur-instr (i/for-opcode op))
         (assoc-in [:cpu :registers :pc] (inc pc)))))
 
-(defn step [ctx]
+(defn- step-halted [ctx]
+  ;; emu_cycles(1));
+  (if (pos? (get-in ctx [:cpu :int-flags]))
+     (assoc-in ctx [:cpu :halted] false)
+     ctx))
+
+(defn- step-running [ctx]
   (let [
         ;; _ (println (str "ctx before fetch-instr" (:cpu ctx)))
         ctx' (fetch-instruction ctx)
@@ -61,6 +69,20 @@
         ctx''' (exec/execute ctx'')]
    ctx'''))
 
+(defn- handle-interrupts [ctx]
+  ctx)
+
+(defn step [ctx]
+  (let [ctx' (if (get-in ctx [:cpu :halted])
+               (step-halted ctx)
+               (step-running ctx))]
+    (cond
+      (get-in ctx [:cpu :int-master-enabled]) (-> ctx' (handle-interrupts)
+                                                       (assoc-in [:cpu :enabling-ime] false))
+      (get-in ctx [:cpu :enabling-ime])       (assoc-in ctx' [:cpu :int-master-enabled] true)
+      :else                                   ctx')))
+
+     
 
 (comment
   (println "sup")

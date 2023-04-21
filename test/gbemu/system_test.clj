@@ -34,8 +34,8 @@
                                       0xC1           ;; POP BC (gets 0x1234)
                                       0xE1           ;; POP HL (gets 0xDDEE)
                                       0xD1           ;; POP DE (gets 0xBBCC)
-                                      0x76]})]
-    (is (:halted (:cpu ctx)))
+                                      0x10]})]    ;; STOP
+    (is (not (:running (:emu ctx))))
 
     (is (= 0xDFFF (r/read-reg ctx :sp)))
 
@@ -48,8 +48,7 @@
                                       0x31 0xFF 0xDF ;; LD SP, 0xDFFF
                                       0x3E 0xA1      ;; LD A, 0xA1
                                       0xEA 0x00 0xD6 ;; LD $(D600), $A
-                                      0x76]})]
-    (is (:halted (:cpu ctx)))
+                                      0x10]})]
     (is (= 0xDFFF (r/read-reg ctx :sp)))
     (is (= 0xA1 (r/read-reg ctx :a)))
     (is (= 0xA1 (bus/read-bus ctx 0xD600)))))
@@ -59,18 +58,17 @@
                                       0x31 0xFF 0xDF ;; LD SP, 0xDFFF
                                       0x3E 0x01      ;; LD A, 0x01
                                       0xC3 0x00 0x10 ;; JP 0x1000
-                                      0x76]
+                                      0x10]
                        :regions {0x1000 [
                                          0x3E 0x02      ;; LD A, 0x02
                                          0xCD 0x00 0x11 ;; CALL 0x1100 (always)
                                          0x06 0x03      ;; LD B, 0x03
-                                         0x76]
+                                         0x10]
                                  0x1100 [
                                          0x0E 0x04 ;; LD C 0x04
                                          0xC9]}})] ;; RET (always)]}})]
 
 
-    (is (:halted (:cpu ctx)))
     (is (= 0x1008 (r/read-reg ctx :pc)))
     (is (= 0x02 (r/read-reg ctx :a)))
     (is (= 0x03 (r/read-reg ctx :b)))
@@ -88,8 +86,7 @@
                                                  0x09           ;; ADD HL, BC (HL=0x01AD)
                                                  0x11 0x00 0x02 ;; LD DE, 0x0200
                                                  0x19           ;; ADD HL, DE (HL=0x03AD)
-                                                 0x76]})]
-    (is (:halted (:cpu ctx-16-bit-add)))
+                                                 0x10]})]
     (is (= 0x00AB (r/read-reg ctx-16-bit-add :sp)))
     (is (= 0x0100 (r/read-reg ctx-16-bit-add :bc)))
     (is (= 0x03AD (r/read-reg ctx-16-bit-add :hl))))
@@ -112,7 +109,7 @@
                                                 0x21 0x01 0xC0 ;; LD HL, 0xC001
                                                 0x36 0xFA      ;; LD $(HL), 0xFA
                                                 0x86           ;; ADD A,$(HL) (A=0x??)
-                                                0x76]})]
+                                                0x10]})]
     (is (= 0xFA (bus/read-bus ctx-8-bit-add 0xC001)))
     (is (= 0x7A (r/read-reg ctx-8-bit-add :a)))
     (is (not (flags/flag-set? ctx-8-bit-add :z)))
@@ -143,7 +140,7 @@
                                             0xC1           ;; POP BC
                                             0x79           ;; LD A,C
                                             0xEA 0x01 0xD0 ;; LD $(0xD001),A
-                                            0x76]})]
+                                            0x10]})]
     (is (= 0x82 (bus/read-bus ctx-logic 0xC000)))
     (is (= 0xC6 (bus/read-bus ctx-logic 0xC001)))
     (is (= 0x6C (bus/read-bus ctx-logic 0xC002)))
@@ -159,7 +156,7 @@
                                             0xCB 0x00      ;; RLC B B=0x8D
                                             0x78           ;; LD A,B
                                             0xEA 0x00 0xC0 ;; LD $(0xC000),A
-                                            0x76]})]
+                                            0x10]})]
     (is (= 0x8D (bus/read-bus ctx-rlc-1 0xC000)))
     (is (= {:z false, :n false :h false, :c true} (flags/all ctx-rlc-1))))
 
@@ -167,7 +164,7 @@
                                             0xCB 0x09      ;; RRC C C=0xE3
                                             0x79           ;; LD A,C
                                             0xEA 0x00 0xC0 ;; LD $(0xC000),A
-                                            0x76]})]
+                                            0x10]})]
     (is (= 0xE3 (bus/read-bus ctx-rrc-1 0xC000)))
     (is (= {:z false, :n false :h false, :c true} (flags/all ctx-rrc-1))))
 
@@ -175,7 +172,7 @@
                                            0xCB 0x12      ;; RL D D=0x8E
                                            0x7A           ;; LD A,B
                                            0xEA 0x00 0xC0 ;; LD $(0xC000),A
-                                           0x76]})]
+                                           0x10]})]
     (is (= 0x8E (bus/read-bus ctx-rl-1 0xC000)))
     (is (= {:z false, :n false :h false, :c true} (flags/all ctx-rl-1))))
 
@@ -183,7 +180,7 @@
                                            0xCB 0x1B      ;; RR E D=0x63
                                            0x7B           ;; LD A,E
                                            0xEA 0x00 0xC0 ;; LD $(0xC000),A
-                                           0x76]})]
+                                           0x10]})]
     (is (= 0x63 (bus/read-bus ctx-rr-1 0xC000)))
     (is (= {:z false, :n false :h false, :c true} (flags/all ctx-rr-1))))
 
@@ -191,7 +188,7 @@
                                             0xCB 0x24      ;; SLA H H=0x8E
                                             0x7C           ;; LD A,H
                                             0xEA 0x00 0xC0 ;; LD $(0xC000),A
-                                            0x76]})]
+                                            0x10]})]
     (is (= 0x8E (bus/read-bus ctx-sla-1 0xC000)))
     (is (= {:z false, :n false :h false, :c true} (flags/all ctx-sla-1))))
 
@@ -199,63 +196,63 @@
                                             0xCB 0x2D      ;; SLA L L=0xE3
                                             0x7D           ;; LD A,L
                                             0xEA 0x00 0xC0 ;; LD $(0xC000),A
-                                            0x76]})]
+                                            0x10]})]
     (is (= 0xE3 (bus/read-bus ctx-sra-1 0xC000)))
     (is (= {:z false, :n false :h false, :c true} (flags/all ctx-sra-1))))
 
  (let [ctx-swap-1 (ctx-with {:instructions [0x21 0x00 0xC0 ;; LD HL, 0xC000
                                             0x36 0xA6      ;; LD $(HL), 0xA6
                                             0xCB 0x36      ;; SWAP $(HL) $(HL)=0x6A
-                                            0x76]})]
+                                            0x10]})]
    (is (= 0x6A (bus/read-bus ctx-swap-1 0xC000)))
    (is (= {:z false, :n false :h false, :c false} (flags/all ctx-swap-1))))
 
  (let [ctx-srl-1 (ctx-with {:instructions [0x3E 0xC2      ;; LD A, 0xC2   (0b1100_0011)
                                            0xCB 0x3F      ;; SRL A A=0x61 (0b0110_0001)
                                            0xEA 0x00 0xC0 ;; LD $(0xC000),A
-                                           0x76]})]
+                                           0x10]})]
    (is (= 0x61 (bus/read-bus ctx-srl-1 0xC000)))
    (is (= {:z false, :n false :h false, :c false} (flags/all ctx-srl-1)))))
 
 (deftest ^:integration bit-instructions
   (let [ctx-bit-1 (ctx-with {:instructions [0x06 0xC6      ;; LD B, 0xC6 (0b1100_0110)
                                             0xCB 0x40      ;; BIT 0, B
-                                            0x76]})
+                                            0x10]})
 
         ctx-bit-2 (ctx-with {:instructions [0x3E 0xC6      ;; LD A, 0xC6 (0b1100_0161)
                                             0xCB 0x4F      ;; BIT 1,A
-                                            0x76]})]
+                                            0x10]})]
    (is (= {:z true, :n false :h true, :c false} (flags/all ctx-bit-1)))
    (is (= {:z false, :n false :h true, :c false} (flags/all ctx-bit-2))))
 
   (let [ctx-res-1 (ctx-with {:instructions [0x21 0x00 0xC0 ;; LD HL, 0xC000
                                             0x36 0xE6      ;; LD $(HL), 0xE6 = 2r11100110
                                             0xCB 0xB6      ;; RES 6,$(HL) $(HL)=0xA6 2r10100110
-                                            0x76]})]
+                                            0x10]})]
     (is (= 0xA6 (bus/read-bus ctx-res-1 0xC000))))
 
   (let [ctx-set-1 (ctx-with {:instructions [0x21 0x00 0xC0 ;; LD HL, 0xC000
                                             0x36 0xE6      ;; LD $(HL), 0xE6 = 2r11100110
                                             0xCB 0xE6      ;; RES 6,$(HL) $(HL)=0xA6 2r10100110
-                                            0x76]})]
+                                            0x10]})]
     (is (= 0xF6 (bus/read-bus ctx-set-1 0xC000)))))
 
 (deftest ^:integration other-rotate-instructions
   (let [ctx-rlca-1 (ctx-with {:instructions [0x3E 0xC6   ;; LD A, 0xC6 (0b1100_0110)
                                              0x07        ;; RLCA
-                                             0x76]})
+                                             0x10]})
 
         ctx-rrca-1 (ctx-with {:instructions [0x3E 0xC6   ;; LD A, 0xC6 (0b1100_0110)
                                              0x0F        ;; RRCA
-                                             0x76]})
+                                             0x10]})
 
         ctx-rla-1 (ctx-with {:instructions [0x3E 0xC6   ;; LD A, 0xC6 (0b1100_0110)
                                             0x17        ;; RLA
-                                            0x76]})
+                                            0x10]})
 
         ctx-rra-1 (ctx-with {:instructions [0x3E 0xC6   ;; LD A, 0xC6 (0b1100_0110)
                                             0x1F        ;; RRA
-                                            0x76]})]
+                                            0x10]})]
 
     (is (= 0x8D (r/read-reg ctx-rlca-1 :a)))
     (is (= 0x63 (r/read-reg ctx-rrca-1 :a)))
@@ -265,7 +262,7 @@
 (deftest ^:integration daa
   (let [ctx-daa-1 (ctx-with {:instructions [0x3E 0xCA   ;; LD A, 0xCA (0b1100_1010)
                                             0x27        ;; DAA
-                                            0x76]})]
+                                            0x10]})]
     (is (= 0xD0 (r/read-reg ctx-daa-1 :a)))
     (is (= {:z false, :n false, :h false, :c false}
            (flags/all ctx-daa-1)))))
@@ -273,7 +270,7 @@
 (deftest ^:integration cpl
   (let [ctx-cpl-1 (ctx-with {:instructions [0x3E 0xCA   ;; LD A, 0xCA (0b1100_1010)
                                             0x2F        ;; CPL
-                                            0x76]})]
+                                            0x10]})]
     (is (= 0x35 (r/read-reg ctx-cpl-1 :a)))
     (is (= {:z false, :n true, :h true, :c false}
            (flags/all ctx-cpl-1)))))
@@ -297,7 +294,7 @@
   (let [rom (vec (take 0x50 (repeat 0x0)))
         ex {0x02 [
                   0x3E 0x02      ;; LD A, 0x02
-                  0x76]}]
+                  0x10]}]
      0x02 (ex 0x02))
 
 

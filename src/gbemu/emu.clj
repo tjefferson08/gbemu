@@ -30,10 +30,8 @@
              ;; _ (println "before step" (:cpu ctx))
              step-result (cpu/step ctx)]
              ;; _ (println "after step" (:cpu step-result))]
-         (if (:halted (:cpu step-result))
-           step-result
-           (recur (update-in step-result [:emu :ticks] inc)))))
-     0)))
+          (recur (update-in step-result [:emu :ticks] inc))))
+     ctx)))
 
 (defn emu-cycles [cpu-cycles])
   ;; TODO

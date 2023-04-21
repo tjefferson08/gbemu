@@ -19,7 +19,7 @@
    0x0E {:type :load, :mode :register_d8, :reg1 :c}
    0x0F {:type :rrca, :mode :register, :reg1 :a}
 
-   0x10 {:type :no-op}
+   0x10 {:type :stop, :mode :implied}
    0x11 {:type :load, :mode :register_d16, :reg1 :de}
    0x12 {:type :load, :mode :memloc_register, :reg1 :de, :reg2 :a}
    0x13 {:type :increment, :mode :register :reg1 :de}

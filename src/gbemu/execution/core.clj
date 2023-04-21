@@ -36,7 +36,7 @@
     ctx'))
 
 (defn- stop [ctx]
-  (throw (Exception. "STOP instruction")))
+  (assoc-in ctx [:emu :running] false))
 
 (defn- halt [ctx]
   (assoc-in ctx [:cpu :halted] true))
@@ -64,7 +64,10 @@
 
 (defn- ccf [ctx]
   (let [c (flags/flag-set? ctx :c)]
-   (flags/set-flags {:n false, :h false, :c (not c)})))
+    (flags/set-flags {:n false, :h false, :c (not c)})))
+
+(defn- ei [ctx]
+  (assoc-in ctx [:cpu :enabling-ime] true))
 
 (defn by-instruction [op]
   (op {:none none
@@ -93,6 +96,7 @@
        :cpl cpl
        :scf scf
        :ccf ccf
+       :ei ei
        :decrement math/decrement
        :increment math/increment
        :load load/load
