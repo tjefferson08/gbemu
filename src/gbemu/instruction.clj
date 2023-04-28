@@ -250,7 +250,7 @@
    0xE6 {:type :and, :mode :register_d8, :reg1 :a}
    0xE7 {:type :rst, :mode :implied, :param 0x20}
    0xE8 {:type :add, :mode :register_d8, :reg1 :sp}
-   0xE9 {:type :jump, :mode :memloc}
+   0xE9 {:type :jump, :mode :register}
    0xEA {:type :load, :mode :d16_register, :reg2 :a}
    0xEB :none
    0xEC :none

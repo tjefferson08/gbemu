@@ -4,7 +4,8 @@
             [gbemu.execution.core :as exec]
             [gbemu.cpu.fetch :as fetch]
             [gbemu.cpu.registers :as r]
-            [gbemu.execution.flags :as flags]))
+            [gbemu.execution.flags :as flags]
+            [gbemu.debug :as debug]))
 
 (defn init []
   {:registers {:a 0x01, :f 0,
@@ -48,10 +49,10 @@
         ctx'' (fetch/fetch-data ctx')
         ;; _ (println (str "ctx after fetch-data" (:cpu ctx'')))
         pc   (get-in ctx [:cpu :registers :pc])
-        _ (println (format "%04X - %8d: %-12s (%02X %02X %02X) A:%02X F:%s%s%s%s BC:%02X%02X DE:%02X%02X HL:%02X%02X SP:%04X"
+        _ (println (format "%04X - %8d: %80s (%02X %02X %02X) A:%02X F:%s%s%s%s BC:%02X%02X DE:%02X%02X HL:%02X%02X SP:%04X"
                             pc
                             (get-in ctx'' [:emu :ticks])
-                            (get-in ctx'' [:cpu :cur-instr :type])
+                            (get-in ctx'' [:cpu :cur-instr])
                             (get-in ctx'' [:cpu :cur-opcode])
                             (bus/read-bus ctx'' (+ pc 1))
                             (bus/read-bus ctx'' (+ pc 2))
@@ -67,8 +68,10 @@
                             (r/read-reg ctx'' :h)
                             (r/read-reg ctx'' :l)
                             (r/read-reg ctx'' :sp)))
-        ctx''' (exec/execute ctx'')]
-   ctx'''))
+        ctx''' (debug/update ctx'')
+        _ (debug/print ctx''')
+        ctx'''' (exec/execute ctx''')]
+   ctx''''))
 
 (defn- handle-interrupts [ctx]
   ctx)

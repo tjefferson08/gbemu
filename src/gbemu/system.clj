@@ -4,7 +4,9 @@
             [gbemu.cartridge :refer [load-cartridge]]
             [gbemu.cpu.core :as cpu]
             [gbemu.emu :as emu]
-            [gbemu.ram :as ram]))
+            [gbemu.ram :as ram]
+            [gbemu.io :as io]
+            [gbemu.debug :as debug]))
 
 (def cli-options
   [["-r" "--rom ROM" "ROM path"]
@@ -17,6 +19,8 @@
 (defn init [rom]
  {:emu (emu/init)
   :cartridge (load-cartridge rom)
+  :io (io/init)
+  :debug (debug/init)
   :cpu (cpu/init)
   :ram (ram/init)})
 

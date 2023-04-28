@@ -2,7 +2,8 @@
   (:require [gbemu.cartridge :as cart]
             [gbemu.ram :as ram]
             [gbemu.cpu.registers :as r]
-            [gbemu.bytes :as b]))
+            [gbemu.bytes :as b]
+            [gbemu.io :as io]))
 
 (defn read-bus [ctx address]
   (b/to-unsigned
@@ -33,8 +34,7 @@
       (> 0xFF00 address) (throw (Exception. "Reserved - Unusable"))
 
       ;; 0xFF00 - 0xFF7F : I/O Registers
-      (> 0xFF80 address) (let [_ (println "I/O Registers: Not yet implemented TODO")]
-                            0xAA)
+      (> 0xFF80 address) (io/read ctx address)
 
       ;; 0xFF80 - 0xFFFE : high RAM
       (> 0xFFFF address) (ram/w-read ctx address)
@@ -71,9 +71,7 @@
       (> 0xFF00 address) (throw (Exception. "Reserved - Unusable"))
 
       ;; 0xFF00 - 0xFF7F : I/O Registers
-      (> 0xFF80 address) (do
-                           (println "I/O Registers: Not yet implemented TODO")
-                           ctx)
+      (> 0xFF80 address) (io/write ctx address value)
 
       ;; 0xFF80 - 0xFFFE : high RAM
       (> 0xFFFF address) (ram/h-write ctx address value)
