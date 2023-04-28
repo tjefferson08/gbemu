@@ -8,6 +8,10 @@
 
 (def cli-options
   [["-r" "--rom ROM" "ROM path"]
+   [nil "--tick-limit TICK_LIMIT" "exit after excuting specified number of ticks"
+    :default nil
+    :parse-fn #(Integer/parseInt %)]
+   [nil "--headless" "Set to true for headless mode (false by default)"]
    ["-h" "--help"]])
 
 (defn init [rom]
@@ -16,9 +20,9 @@
   :cpu (cpu/init)
   :ram (ram/init)})
 
-(defn boot [rom]
-  (emu/run (init rom)))
-
 (defn -main [& args]
-  (let [opts (parse-opts args cli-options)]
-    (boot (get-in opts [:options :rom]))))
+  (let [opts (parse-opts args cli-options)
+        {:keys [headless rom tick-limit]} (:options opts)
+        ctx (-> (init rom)
+                (update :emu assoc :headless headless :tick-limit tick-limit))]
+    (emu/run ctx)))

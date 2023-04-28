@@ -5,7 +5,7 @@
 (def TICK_LIMIT 100100)
 
 (defn init []
-  {:paused false, :running true, :ticks 0})
+  {:paused false, :running true, :ticks 0, :headless false})
 
 ;; Components
 ;; - Cartridge
@@ -14,12 +14,12 @@
 ;; - PPU
 ;; - Timer
 (defn run
-  ([ctx]
+  ([{{:keys [tick-limit headless ticks]} :emu :as ctx}]
    ;; (println (str "Tick " (:ticks (:emu ctx))))
   ;; TODO initialize graphics
   ;; Initialize true-type-fonts (TTF)
   ;; initialize CPU
-   (if (and TICK_LIMIT (< TICK_LIMIT (get-in ctx [:emu :ticks])))
+   (if (and tick-limit (< tick-limit (get-in ctx [:emu :ticks])))
      (throw (Exception. "TICK LIMIT EXCEEDED")))
 
   ;; rework to be clojureish
