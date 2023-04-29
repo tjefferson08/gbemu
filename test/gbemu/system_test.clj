@@ -86,7 +86,15 @@
                                                 0x18 0xF9]      ;; JR -7
 
                                         0x1100 [0x10]}})] ;; STOP
-    (is (= 0x02 (r/read-reg ctx-jump-2 :a)))))
+    (is (= 0x02 (r/read-reg ctx-jump-2 :a))))
+
+  (let [ctx-jump-3 (ctx-with {:instructions [0x21 0x01 0x10 ;; LD HL, 0xC001
+                                             0x3E 0x01      ;; LD A, 0x01
+                                             0xE9]          ;; JP $(HL)
+
+                              :regions {0x1001 [0x3E 0x02      ;; LD A, 0x02
+                                                0x10]}})]
+    (is (= 0x02 (r/read-reg ctx-jump-3 :a)))))
 
 (deftest ^:integration math-instructions
   (let [ctx-inc-1 (ctx-with {:instructions [
