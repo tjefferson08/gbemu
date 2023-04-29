@@ -21,6 +21,9 @@
                       :emu-cycles 1
                       :registers (r-update :pc (inc pc))}
         :implied {}
+        :memloc {:fetched-data (bus/read-bus ctx reg1_val)
+                 :mem_dest reg1_val
+                 :dest_is_mem true}
         :memloc_d8 {:fetched-data (bus/read-bus ctx pc)
                     :mem_dest reg1_val
                     :registers (r-update :pc (inc pc))

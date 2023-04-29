@@ -6,7 +6,8 @@
             [gbemu.emu :as emu]
             [gbemu.ram :as ram]
             [gbemu.io :as io]
-            [gbemu.debug :as debug]))
+            [gbemu.debug :as debug]
+            [gbemu.timer :as timer]))
 
 (def cli-options
   [["-r" "--rom ROM" "ROM path"]
@@ -22,6 +23,7 @@
   :io (io/init)
   :debug (debug/init)
   :cpu (cpu/init)
+  :timer (timer/init)
   :ram (ram/init)})
 
 (defn -main [& args]

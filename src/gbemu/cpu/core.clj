@@ -8,11 +8,11 @@
             [gbemu.debug :as debug]))
 
 (defn init []
-  {:registers {:a 0x01, :f 0,
-               :b 0, :c 0,
-               :d 0, :e 0,
-               :h 0, :l 0,
-               :pc 0x100, :sp 0x0000}
+  {:registers {:a 0x01, :f 0xB0,
+               :b 0, :c 0x13,
+               :d 0, :e 0xD8,
+               :h 0x01, :l 0x4D
+               :pc 0x100, :sp 0xFFFE}
    :fetched-data 0,
    :mem_dest 0,
    :dest_is_mem false,
@@ -24,7 +24,14 @@
    :int-master-enabled false
    :enabling-ime false
    :ie-register 0x00
+   ;; TODO: timer goes to 0xABCC when cpu reset?
    :int-flags 0x00})
+
+(def INTERRUPT_BITS {:vblank 0, :lcd-stat 1, :timer 2, :serial 3, :joypad 4})
+
+(defn request-interrupt [ctx type]
+  (let [bit (INTERRUPT_BITS type)]
+    (update-in ctx [:cpu :int-flags] (fn [fl] (bit-set fl bit)))))
 
 (defn fetch-instruction [ctx]
   (let [pc (get-in ctx [:cpu :registers :pc])

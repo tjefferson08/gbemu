@@ -43,13 +43,14 @@
 
 (defn ret [ctx]
   ;; emu cycles 1 if cond not= none)
-  (when (check-cond ctx)
+  (if (check-cond ctx)
     (let [[lo ctx'] (stack/pop ctx)
           ;; _ (emu-cycles 1)
           [hi ctx''] (stack/pop ctx')
           new-pc     (bytes/->d16 lo hi)]
           ;; _ (println "ret ctx new-pc" new-pc (:cpu ctx''))]
-      (r/write-reg ctx'' :pc new-pc))))
+      (r/write-reg ctx'' :pc new-pc))
+    ctx))
       ;; cycles 1 again
 
 (defn ret-i [ctx]

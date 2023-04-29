@@ -57,7 +57,7 @@
    0x31 {:type :load, :mode :register_d16, :reg1 :sp}
    0x32 {:type :load, :mode :memloc-_register, :reg1 :hl, :reg2 :a}
    0x33 {:type :increment, :mode :register :reg1 :sp}
-   0x34 {:type :increment, :mode :memloc :reg1 :hl}
+   0x34 {:type :increment, :mode :memloc, :reg1 :hl}
    0x35 {:type :decrement, :mode :memloc, :reg1 :hl}
    0x36 {:type :load, :mode :memloc_d8, :reg1 :hl}
    0x37 {:type :scf, :mode :implied}

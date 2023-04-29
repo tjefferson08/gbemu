@@ -7,6 +7,9 @@
             [gbemu.execution.flags :as flags]
             [gbemu.cpu.core :as cpu]))
 
+(defn submap? [a-map b-map]
+ (every? (fn [[k _ :as entry]] (= entry (find b-map k))) a-map))
+
 (defn build-rom-vec [instructions regions]
   (let [header-bytes (bytes/slurp-bytes "resources/roms/header-only.gb")
         base-rom     (vec (take 0x8000 (concat header-bytes instructions (repeat 0x00))))
@@ -91,6 +94,13 @@
                                             0x0C           ;; INC C
                                             0x10]})]
     (is (= 0x05 (r/read-reg ctx-inc-1 :c))))
+
+  (let [ctx-inc-2 (ctx-with {:instructions [0x21 0x01 0xC0 ;; LD HL, 0xC001
+                                            0x34           ;; INC (HL)
+                                            0x34           ;; INC (HL)
+                                            0x35           ;; DEC (HL)
+                                            0x10]})]
+    (is (= 0x01 (bus/read-bus ctx-inc-2 0xC001))))
 
   (let [ctx-16-bit-add (ctx-with {:instructions [
                                                  0x31 0xAA 0x00 ;; LD SP, 0x00AA
@@ -185,7 +195,9 @@
     (is (= 0xE3 (bus/read-bus ctx-rrc-1 0xC000)))
     (is (= {:z false, :n false :h false, :c true} (flags/all ctx-rrc-1))))
 
-  (let [ctx-rl-1 (ctx-with {:instructions [0x16 0xC7      ;; LD D, 0xC7 (0b1100_0111)
+  (let [ctx-rl-1 (ctx-with {:instructions [0x3E 0xC7      ;; LD A, 0xC7 (0b1100_0111)
+                                           0xC6 0x00      ;; ADD A, 0x0 (reset carry)
+                                           0x57           ;; LD D,A
                                            0xCB 0x12      ;; RL D D=0x8E
                                            0x7A           ;; LD A,B
                                            0xEA 0x00 0xC0 ;; LD $(0xC000),A
@@ -193,7 +205,9 @@
     (is (= 0x8E (bus/read-bus ctx-rl-1 0xC000)))
     (is (= {:z false, :n false :h false, :c true} (flags/all ctx-rl-1))))
 
-  (let [ctx-rr-1 (ctx-with {:instructions [0x1E 0xC7      ;; LD E, 0xC7 (0b1100_0111)
+  (let [ctx-rr-1 (ctx-with {:instructions [0x3E 0xC7      ;; LD A, 0xC7 (0b1100_0111)
+                                           0xC6 0x00      ;; ADD A, 0x0 (reset carry)
+                                           0x5F           ;; LD E,A
                                            0xCB 0x1B      ;; RR E D=0x63
                                            0x7B           ;; LD A,E
                                            0xEA 0x00 0xC0 ;; LD $(0xC000),A
@@ -239,8 +253,8 @@
         ctx-bit-2 (ctx-with {:instructions [0x3E 0xC6      ;; LD A, 0xC6 (0b1100_0161)
                                             0xCB 0x4F      ;; BIT 1,A
                                             0x10]})]
-   (is (= {:z true, :n false :h true, :c false} (flags/all ctx-bit-1)))
-   (is (= {:z false, :n false :h true, :c false} (flags/all ctx-bit-2))))
+   (is (submap? {:z true, :n false :h true} (flags/all ctx-bit-1)))
+   (is (submap? {:z false, :n false :h true} (flags/all ctx-bit-2))))
 
   (let [ctx-res-1 (ctx-with {:instructions [0x21 0x00 0xC0 ;; LD HL, 0xC000
                                             0x36 0xE6      ;; LD $(HL), 0xE6 = 2r11100110
@@ -256,18 +270,22 @@
 
 (deftest ^:integration other-rotate-instructions
   (let [ctx-rlca-1 (ctx-with {:instructions [0x3E 0xC6   ;; LD A, 0xC6 (0b1100_0110)
+                                             0xC6 0x00   ;; ADD A, 0x0 (reset carry)
                                              0x07        ;; RLCA
                                              0x10]})
 
         ctx-rrca-1 (ctx-with {:instructions [0x3E 0xC6   ;; LD A, 0xC6 (0b1100_0110)
+                                             0xC6 0x00   ;; ADD A, 0x0 (reset carry)
                                              0x0F        ;; RRCA
                                              0x10]})
 
         ctx-rla-1 (ctx-with {:instructions [0x3E 0xC6   ;; LD A, 0xC6 (0b1100_0110)
+                                            0xC6 0x00   ;; ADD A, 0x0 (reset carry)
                                             0x17        ;; RLA
                                             0x10]})
 
         ctx-rra-1 (ctx-with {:instructions [0x3E 0xC6   ;; LD A, 0xC6 (0b1100_0110)
+                                            0xC6 0x00   ;; ADD A, 0x0 (reset carry)
                                             0x1F        ;; RRA
                                             0x10]})]
 
@@ -281,16 +299,14 @@
                                             0x27        ;; DAA
                                             0x10]})]
     (is (= 0xD0 (r/read-reg ctx-daa-1 :a)))
-    (is (= {:z false, :n false, :h false, :c false}
-           (flags/all ctx-daa-1)))))
+    (is (submap? {:z false, :h false, :c false} (flags/all ctx-daa-1)))))
 
 (deftest ^:integration cpl
   (let [ctx-cpl-1 (ctx-with {:instructions [0x3E 0xCA   ;; LD A, 0xCA (0b1100_1010)
                                             0x2F        ;; CPL
                                             0x10]})]
     (is (= 0x35 (r/read-reg ctx-cpl-1 :a)))
-    (is (= {:z false, :n true, :h true, :c false}
-           (flags/all ctx-cpl-1)))))
+    (is (submap? {:n true, :h true} (flags/all ctx-cpl-1)))))
 
 (comment
   (format "%04X" 99)
