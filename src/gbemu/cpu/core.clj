@@ -48,6 +48,46 @@
      (assoc-in ctx [:cpu :halted] false)
      ctx))
 
+(defn- doctor-log [ctx]
+  (let [pc (r/read-reg ctx :pc)]
+    (format "A:%02X F:%02X B:%02X C:%02X D:%02X E:%02X H:%02X L:%02X SP:%04X PC:%04X PCMEM:%02X,%02X,%02X,%02X"
+      (r/read-reg ctx :a)
+      (r/read-reg ctx :f)
+      (r/read-reg ctx :b)
+      (r/read-reg ctx :c)
+      (r/read-reg ctx :d)
+      (r/read-reg ctx :e)
+      (r/read-reg ctx :h)
+      (r/read-reg ctx :l)
+      (r/read-reg ctx :sp)
+      pc
+      (bus/read-bus ctx pc)
+      (bus/read-bus ctx (+ 1 pc))
+      (bus/read-bus ctx (+ 2 pc))
+      (bus/read-bus ctx (+ 3 pc)))))
+
+(defn- debug-log [ctx]
+  (let [pc (r/read-reg ctx :pc)]
+    (format "%04X - %8d: %80s (%02X %02X %02X) A:%02X F:%s%s%s%s BC:%02X%02X DE:%02X%02X HL:%02X%02X SP:%04X"
+             pc
+             (get-in ctx [:emu :ticks])
+             (get-in ctx [:cpu :cur-instr])
+             (get-in ctx [:cpu :cur-opcode])
+             (bus/read-bus ctx (+ pc 1))
+             (bus/read-bus ctx (+ pc 2))
+             (r/read-reg ctx :a)
+             (if (flags/flag-set? ctx :z) "Z" "-")
+             (if (flags/flag-set? ctx :n) "N" "-")
+             (if (flags/flag-set? ctx :h) "H" "-")
+             (if (flags/flag-set? ctx :c) "C" "-")
+             (r/read-reg ctx :b)
+             (r/read-reg ctx :c)
+             (r/read-reg ctx :d)
+             (r/read-reg ctx :e)
+             (r/read-reg ctx :h)
+             (r/read-reg ctx :l)
+             (r/read-reg ctx :sp))))
+
 (defn- step-running [ctx]
   (let [
         ;; _ (println (str "ctx before fetch-instr" (:cpu ctx)))
@@ -55,26 +95,9 @@
         ;; _ (println (str "ctx after fetch-instr" (:cpu ctx')))
         ctx'' (fetch/fetch-data ctx')
         ;; _ (println (str "ctx after fetch-data" (:cpu ctx'')))
-        pc   (get-in ctx [:cpu :registers :pc])
-        _ (println (format "%04X - %8d: %80s (%02X %02X %02X) A:%02X F:%s%s%s%s BC:%02X%02X DE:%02X%02X HL:%02X%02X SP:%04X"
-                            pc
-                            (get-in ctx'' [:emu :ticks])
-                            (get-in ctx'' [:cpu :cur-instr])
-                            (get-in ctx'' [:cpu :cur-opcode])
-                            (bus/read-bus ctx'' (+ pc 1))
-                            (bus/read-bus ctx'' (+ pc 2))
-                            (r/read-reg ctx'' :a)
-                            (if (flags/flag-set? ctx'' :z) "Z" "-")
-                            (if (flags/flag-set? ctx'' :n) "N" "-")
-                            (if (flags/flag-set? ctx'' :h) "H" "-")
-                            (if (flags/flag-set? ctx'' :c) "C" "-")
-                            (r/read-reg ctx'' :b)
-                            (r/read-reg ctx'' :c)
-                            (r/read-reg ctx'' :d)
-                            (r/read-reg ctx'' :e)
-                            (r/read-reg ctx'' :h)
-                            (r/read-reg ctx'' :l)
-                            (r/read-reg ctx'' :sp)))
+        _ (println (doctor-log ctx))
+        ;; _ (println (debug-log ctx))
+
         ctx''' (debug/update ctx'')
         _ (debug/print ctx''')
         ctx'''' (exec/execute ctx''')]

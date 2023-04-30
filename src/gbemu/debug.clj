@@ -1,5 +1,6 @@
 (ns gbemu.debug
-  (:require [gbemu.bus :as bus]))
+  (:require [gbemu.bus :as bus]
+            [gbemu.log :as log]))
 
 (defn init [] {:msg []})
 
@@ -12,4 +13,11 @@
 
 (defn print [ctx]
   (let [m (get-in ctx [:debug :msg])]
-    (or (empty? m) (println "SERIAL:" m))))
+    (or (empty? m) (log/stderr (apply str "SERIAL: " (map char m))))))
+
+(comment
+ (apply str (map char [48 49 45 115 112 101 99 105 97 108 10 10]))
+
+ (.println *err* (apply str "SERIAL: " (map char [48 49])))
+
+ ,)

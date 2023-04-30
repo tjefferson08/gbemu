@@ -8,28 +8,28 @@
         res  (bit-xor a fetched-data)]
     (-> ctx
         (r/write-reg :a res)
-        (flags/set-flags {:z (zero? res)}))))
+        (flags/set-flags {:z (zero? res), :n false, :h false, :c false}))))
 
 (defn and [{{:keys [cur-instr fetched-data]} :cpu :as ctx}]
   (let [a    (r/read-reg ctx :a)
         res  (bit-and a fetched-data)]
     (-> ctx
         (r/write-reg :a res)
-        (flags/set-flags {:z (zero? res), :n 0, :h 1, :c 0}))))
+        (flags/set-flags {:z (zero? res), :n false, :h true, :c false}))))
 
 (defn or [{{:keys [cur-instr fetched-data]} :cpu :as ctx}]
   (let [a    (r/read-reg ctx :a)
         res  (bit-or a fetched-data)]
     (-> ctx
         (r/write-reg :a res)
-        (flags/set-flags {:z (zero? res), :n 0, :h 0, :c 0}))))
+        (flags/set-flags {:z (zero? res), :n false, :h false, :c false}))))
 
 (defn cp [{{:keys [cur-instr fetched-data]} :cpu :as ctx}]
   (let [a    (r/read-reg ctx :a)
         res  (- a fetched-data)
         hd   (bytes/half-diff a res)]
     (-> ctx
-        (flags/set-flags {:z (zero? res), :n 1, :h (neg? hd), :c (neg? res)}))))
+        (flags/set-flags {:z (zero? res), :n true, :h (neg? hd), :c (neg? res)}))))
 
 (defn rlca [ctx]
   (let [v   (r/read-reg ctx :a)

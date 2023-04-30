@@ -48,14 +48,30 @@
     (is (= 0xBBCC (r/read-reg ctx :de)))))
 
 (deftest ^:integration load-instructions
-  (let [ctx (ctx-with {:instructions [
-                                      0x31 0xFF 0xDF ;; LD SP, 0xDFFF
-                                      0x3E 0xA1      ;; LD A, 0xA1
-                                      0xEA 0x00 0xD6 ;; LD $(D600), $A
-                                      0x10]})]
-    (is (= 0xDFFF (r/read-reg ctx :sp)))
-    (is (= 0xA1 (r/read-reg ctx :a)))
-    (is (= 0xA1 (bus/read-bus ctx 0xD600)))))
+  (let [load-1 (ctx-with {:instructions [
+                                         0x31 0xFF 0xDF ;; LD SP, 0xDFF0
+                                         0x08 0x02 0xD6 ;; LD $(D602), SP
+                                         0x3E 0xA1      ;; LD A, 0xA1
+                                         0xEA 0x00 0xD6 ;; LD $(D600), $A
+
+                                         0x01 0x01 0xD6 ;; LD BC, $D601
+                                         0x02           ;; LD (BC), A
+                                         0xEA 0x00 0xD6 ;; LD $(D600), $A
+                                         0x10]})]
+    (is (= 0xA1 (r/read-reg load-1 :a)))
+    (is (= 0xD601 (r/read-reg load-1 :bc)))
+    (is (= 0xA1 (bus/read-bus load-1 0xD600)))
+    (is (= 0xA1 (bus/read-bus load-1 0xD601)))
+    (is (= 0xFF (bus/read-bus load-1 0xD602)))
+    (is (= 0xDF (bus/read-bus load-1 0xD603))))
+
+  (let [load-2 (ctx-with {:instructions [0x21 0x82 0xFF ;; LD HL, $FF82
+                                         0x36 0x99      ;; LD (HL), $99
+                                         0x4E           ;; LD C, (HL)
+                                         0x10]})]
+    (is (= 0xFF82 (r/read-reg load-2 :hl)))
+    (is (= 0x99 (r/read-reg load-2 :c)))
+    (is (= 0x99 (bus/read-bus load-2 0xFF82)))))
 
 (deftest ^:integration jump-instructions
   (let [ctx-jump-1 (ctx-with {:instructions [

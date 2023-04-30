@@ -57,7 +57,7 @@
             v'                               (bit-and 0xFFFF v)]
         (-> ctx
           (r/write-reg :sp v')
-          (flags/set-flags {:z 0, :n 0, :h h, :c c}))))
+          (flags/set-flags {:z false, :n false, :h h, :c c}))))
 
 (defn- add-16-bit [ctx]
   (let [{:keys [cur-instr fetched-data]} (ctx :cpu)
@@ -75,7 +75,7 @@
             v'                               (bit-and 0xFFFF v)]
         (-> ctx
           (r/write-reg reg1 v')
-          (flags/set-flags {:n 0, :h h, :c c}))))))
+          (flags/set-flags {:n false, :h h, :c c}))))))
 
 (defn- add-8-bit [ctx]
   (let [{:keys [cur-instr fetched-data]} (ctx :cpu)
@@ -89,7 +89,7 @@
         v'                               (bytes/to-unsigned v)]
     (-> ctx
         (r/write-reg reg1 v')
-        (flags/set-flags {:z (zero? v'), :n 0, :h h, :c c}))))
+        (flags/set-flags {:z (zero? v'), :n false, :h h, :c c}))))
 
 (defn add [ctx]
   (let [reg1 (get-in ctx [:cpu :cur-instr :reg1])]
@@ -109,30 +109,32 @@
         c'                            (< 0xFF v)]
     (-> ctx
         (r/write-reg reg1 v')
-        (flags/set-flags {:z z, :n 0, :h h, :c c'}))))
+        (flags/set-flags {:z z, :n false, :h h, :c c'}))))
 
 (defn sub [{{:keys [cur-instr fetched-data]} :cpu :as ctx}]
   (let [{:keys [reg1 reg2] :as inst}     cur-instr
         operand                          (r/read-reg ctx reg1)
         v                                (- operand fetched-data)
-        h                                (pos? (bytes/half-diff operand fetched-data))
+        h                                (neg? (bytes/half-diff operand fetched-data))
         c                                (neg? v)
         v'                               (bytes/to-unsigned v)]
     (-> ctx
         (r/write-reg reg1 v')
-        (flags/set-flags {:z (zero? v'), :n 1, :h h, :c c}))))
+        (flags/set-flags {:z (zero? v'), :n true, :h h, :c c}))))
 
 (defn sbc [{{:keys [cur-instr fetched-data]} :cpu :as ctx}]
   (let [{:keys [reg1 reg2] :as inst}     cur-instr
         operand                          (r/read-reg ctx reg1)
-        c                                (if (flags/flag-set? :c) 1 0)
+        c                                (if (flags/flag-set? ctx :c) 1 0)
         v                                (- operand fetched-data c)
         h                                (pos? (- (bytes/half-diff operand fetched-data) c))
         c'                               (neg? v)
         v'                               (bytes/to-unsigned v)]
     (-> ctx
         (r/write-reg reg1 v')
-        (flags/set-flags {:z (zero? v'), :n 1, :h h, :c c'}))))
+        (flags/set-flags {:z (zero? v'), :n true}))))
+
+
 
 (comment
 

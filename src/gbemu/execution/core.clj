@@ -42,16 +42,18 @@
   (assoc-in ctx [:cpu :halted] true))
 
 (defn daa [ctx]
-  (let [c (flags/flag-set? ctx :c)
-        n (flags/flag-set? ctx :n)
-        a (r/read-reg ctx :a)
-        [c' v] (cond
-                 (or c (and (not n) (< 9 (bit-and 0x0F a)))) [false 6]
-                 (or c (and (not n) (< 0x99 a)))             [true 0x60]
-                 :else                                       [false 0])
-        v' (bytes/to-unsigned (if n (- a v) (+ a v)))]
-     (-> ctx (r/write-reg :a v')
-             (flags/set-flags {:z (zero? v'), :h false, :c c'}))))
+  (let [{:keys [c n h]} (flags/all ctx)
+        a               (r/read-reg ctx :a)
+        v               0
+        v'              (if (or h (and (not n) (< 0x09 (bit-and 0x0F a))))
+                          0x06
+                          v)
+        [v'' c']        (if (or c (and (not n) (< 0x99 a)))
+                          [(bit-or 0x60 v') true]
+                          [v' false])
+        a'              (bytes/to-unsigned (if n (- a v'') (+ a v'')))]
+     (-> ctx (r/write-reg :a a')
+             (flags/set-flags {:z (zero? a'), :h false, :c c'}))))
 
 (defn- cpl [ctx]
   (let [a (r/read-reg ctx :a)]

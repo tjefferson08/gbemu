@@ -10,7 +10,7 @@
    0x05 {:type :decrement, :mode :register, :reg1 :b}
    0x06 {:type :load, :mode :register_d8, :reg1 :b}
    0x07 {:type :rlca, :mode :register, :reg1 :a}
-   0x08 {:type :load, :mode :a16_register, :reg2 :sp}
+   0x08 {:type :load, :mode :d16_register, :reg2 :sp}
    0x09 {:type :add, :mode :register_register, :reg1 :hl, :reg2 :bc}
    0x0A {:type :load, :mode :register_memloc, :reg1 :a, :reg2 :bc}
    0x0B {:type :decrement, :mode :register, :reg1 :bc}

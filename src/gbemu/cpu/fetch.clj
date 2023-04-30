@@ -29,11 +29,11 @@
                     :registers (r-update :pc (inc pc))
                     :dest_is_mem  true}
         :memloc_register {:fetched-data reg2_val
-                          :mem_dest (if (= reg1 :c) (bit-or 0xFF reg1_val) reg1_val)
+                          :mem_dest (if (= reg1 :c) (bit-or 0xFF00 reg1_val) reg1_val)
                           :dest_is_mem  true}
         :register {:fetched-data reg1_val}
         :register_register {:fetched-data reg2_val}
-        :register_memloc (let [addr (if (= reg1 :c) (bit-or 0xFF reg2_val) reg2_val)]
+        :register_memloc (let [addr (if (= reg2 :c) (bit-or 0xFF00 reg2_val) reg2_val)]
                            {:fetched-data (bus/read-bus ctx addr)
                             :emu-cycles 1})
         (:d8 :register_a8 :register_d8) {:emu-cycles 1
