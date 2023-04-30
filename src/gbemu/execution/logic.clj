@@ -64,9 +64,13 @@
 (defn rra [ctx]
   (let [v   (r/read-reg ctx :a)
         c   (flags/flag-set? ctx :c)
-        c'  (bit-test v 7)
+        c'  (bit-test v 0)
         v'  (bit-and 0xFF (bit-shift-right v 1))
         v'' (if c (bit-set v' 7) v')]
     (-> ctx
         (r/write-reg :a v'')
         (flags/set-flags {:z false, :n false, :h false, :c c'}))))
+
+(comment
+
+ ,)

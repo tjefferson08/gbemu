@@ -73,6 +73,30 @@
     (is (= 0x99 (r/read-reg load-2 :c)))
     (is (= 0x99 (bus/read-bus load-2 0xFF82)))))
 
+(deftest ^:integration loadh
+  (let [loadh-1 (ctx-with {:instructions [0x3E 0x01      ;; LD A, $01
+                                          0xE0 0x01      ;; LDH ($FF01), A
+                                          0x3E 0x02      ;; LD A, $02
+                                          0xF0 0x01      ;; LDH A, ($FF01)
+                                          0x10]})]
+    (is (= 0x01 (r/read-reg loadh-1 :a)))
+    (is (= 0x01 (bus/read-bus loadh-1 0xFF01)))))
+
+(deftest ^:integration load-and-inc-instructions
+  (let [load-hl+ (ctx-with {:instructions [0x3E 0x01      ;; LD A, $01
+                                           0x21 0x80 0xFF ;; LD HL, $FF80
+                                           0x22           ;; LD (HL+), A
+                                           0x3E 0x11      ;; LD A, $11
+                                           0x22           ;; LD (HL+), A
+                                           0x3E 0x21      ;; LD A, $21
+                                           0x32           ;; LD (HL-), A
+                                           0x10]})]
+    (is (= 0xFF81 (r/read-reg load-hl+ :hl)))
+    (is (= 0x01 (bus/read-bus load-hl+ 0xFF80)))
+    (is (= 0x11 (bus/read-bus load-hl+ 0xFF81)))
+    (is (= 0x21 (bus/read-bus load-hl+ 0xFF82)))))
+
+
 (deftest ^:integration jump-instructions
   (let [ctx-jump-1 (ctx-with {:instructions [
                                              0x31 0xFF 0xDF ;; LD SP, 0xDFFF
@@ -200,7 +224,15 @@
       (is (not (flags/flag-set? f-after-cp :z)))
       (is (flags/flag-set? f-after-cp :c))
       (is (flags/flag-set? f-after-cp :n))
-      (is (not (flags/flag-set? f-after-cp :h))))))
+      (is (not (flags/flag-set? f-after-cp :h)))))
+
+  (let [ctx-logic-2 (ctx-with {:instructions [0x21 0x80 0xFF ;; LD HL, $FF80
+                                              0x36 0xDE      ;; LD (HL), $DE
+                                              0x3E 0x31      ;; LD A, $31
+                                              0xAE           ;; XOR (HL)
+                                              0x10]})]
+    (is (= 0xDE (bus/read-bus ctx-logic-2 0xFF80)))
+    (is (= 0xEF (r/read-reg ctx-logic-2 :a)))))
 
 (deftest ^:integration rotate-shift-instructions
   (let [ctx-rlc-1 (ctx-with {:instructions [0x06 0xC6      ;; LD B, 0xC6 (0b1100_0110)

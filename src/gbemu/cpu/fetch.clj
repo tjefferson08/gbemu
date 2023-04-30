@@ -48,11 +48,11 @@
         :register_sp-plus-r8 {:fetched-data (bus/read-bus ctx pc)
                               :emu-cycles 1
                               :registers (r-update :pc (inc pc))}
-        :memloc+_register {:fetched-data (bus/read-bus ctx reg2_val)
+        :memloc+_register {:fetched-data reg2_val
                            :mem_dest reg1_val
                            :dest_is_mem true
                            :registers (r-update reg1 (inc reg1_val))}
-        :memloc-_register {:fetched-data (bus/read-bus ctx reg2_val)
+        :memloc-_register {:fetched-data reg2_val
                            :mem_dest reg1_val
                            :dest_is_mem true
                            :registers (r-update reg1 (dec reg1_val))}
