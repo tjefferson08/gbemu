@@ -73,6 +73,31 @@
     (is (= 0x99 (r/read-reg load-2 :c)))
     (is (= 0x99 (bus/read-bus load-2 0xFF82)))))
 
+(deftest ^:integration load-with-special-sp-addressing-mode-opcode-48
+  (let [ctx (ctx-with {:instructions [0x21 0x99 0x88 ;; LD HL, $8899
+                                      0x31 0x01 0x00 ;; LD SP, 0x0001
+                                      0xF8 0x01      ;; LD HL, SP+$01
+                                      0x10]})]
+    (is (= 0x0002 (r/read-reg ctx :hl)))
+    (is (= 0x0001 (r/read-reg ctx :sp)))
+    (is (= {:z false, :n false, :h false, :c false} (flags/all ctx))))
+
+  (let [ctx (ctx-with {:instructions [0x21 0x99 0x88 ;; LD HL, $8899
+                                      0x31 0x03 0x00 ;; LD SP, 0x0003
+                                      0xF8 0xFF      ;; LD HL, SP+$01
+                                      0x10]})]
+    (is (= 0x0002 (r/read-reg ctx :hl)))
+    (is (= 0x0003 (r/read-reg ctx :sp)))
+    (is (= {:z false, :n false, :h true, :c true} (flags/all ctx))))
+
+  (let [ctx (ctx-with {:instructions [0x21 0x99 0x88 ;; LD HL, $8899
+                                      0x31 0x0F 0x00 ;; LD SP, 0x000F
+                                      0xF8 0x01      ;; LD HL, SP+$01
+                                      0x10]})]
+    (is (= 0x0010 (r/read-reg ctx :hl)))
+    (is (= 0x000F (r/read-reg ctx :sp)))
+    (is (= {:z false, :n false, :h true, :c false} (flags/all ctx)))))
+
 (deftest ^:integration loadh
   (let [loadh-1 (ctx-with {:instructions [0x3E 0x01      ;; LD A, $01
                                           0xE0 0x01      ;; LDH ($FF01), A
@@ -83,6 +108,36 @@
     (is (= 0x01 (bus/read-bus loadh-1 0xFF01)))))
 
 (deftest ^:integration load-and-inc-instructions
+  (let [load-hl+ (ctx-with {:instructions [0x3E 0x01      ;; LD A, $01
+                                           0x06 0x00      ;; LD B, $00
+                                           0x21 0x80 0xFF ;; LD HL, $FF80
+                                           0x22           ;; LD (HL+), A
+                                           0x3E 0x11      ;; LD A, $11
+                                           0x22           ;; LD (HL+), A
+                                           0x3E 0x21      ;; LD A, $21
+                                           0x32           ;; LD (HL-), A
+                                           0x2A           ;; LD A, (HL+)
+                                           0x80           ;; ADD A,B
+                                           0x47           ;; LD B,A
+                                           0x3A           ;; LD A, (HL-)
+                                           0x80           ;; ADD A,B
+                                           0x47           ;; LD B,A
+                                           0x3A           ;; LD A, (HL-)
+                                           0x80           ;; ADD A,B
+                                           0x47           ;; LD B,A
+                                           0x3A           ;; LD A, (HL-)
+                                           0x80           ;; ADD A,B
+                                           0x47           ;; LD B,A
+                                           0x10]})]
+    (is (= 0xFF7F (r/read-reg load-hl+ :hl)))
+    (is (= (+ 0x01 0x11 0x11 0x21) (r/read-reg load-hl+ :b)))
+    (is (= 0x00 (bus/read-bus load-hl+ 0xFF7F)))
+    (is (= 0x01 (bus/read-bus load-hl+ 0xFF80)))
+    (is (= 0x11 (bus/read-bus load-hl+ 0xFF81)))
+    (is (= 0x21 (bus/read-bus load-hl+ 0xFF82)))
+    (is (= 0x00 (bus/read-bus load-hl+ 0xFF83)))))
+
+(deftest ^:integration load-and-inc-instructions-2
   (let [load-hl+ (ctx-with {:instructions [0x3E 0x01      ;; LD A, $01
                                            0x21 0x80 0xFF ;; LD HL, $FF80
                                            0x22           ;; LD (HL+), A
@@ -96,6 +151,17 @@
     (is (= 0x11 (bus/read-bus load-hl+ 0xFF81)))
     (is (= 0x21 (bus/read-bus load-hl+ 0xFF82)))))
 
+
+(deftest ^:integration reti
+  (let [ctx (ctx-with {:instructions [
+                                      0x31 0xFF 0xDF ;; LD SP, 0xDFFF
+                                      0x3E 0x01      ;; LD A, 0x01
+                                      0xCD 0x00 0x10 ;; CALL $1000 (always)
+                                      0x10]
+                       :regions {0x1000 [0x3E 0x02      ;; LD A, 0x02
+                                         0xD9]}})]          ;; RETI
+    (is (= 0x02 (r/read-reg ctx :a)))
+    (is (get-in ctx [:cpu :int-master-enabled]))))
 
 (deftest ^:integration jump-instructions
   (let [ctx-jump-1 (ctx-with {:instructions [
@@ -135,6 +201,28 @@
                               :regions {0x1001 [0x3E 0x02      ;; LD A, 0x02
                                                 0x10]}})]
     (is (= 0x02 (r/read-reg ctx-jump-3 :a)))))
+
+(deftest ^:integration sbc
+  (let [ctx (ctx-with {:instructions [0x3E 0x00    ;; LD A, 0x00
+                                      0x06 0x01    ;; LD B, 0x01
+                                      0xC6 0x00    ;; ADD A, 0x0 (reset carry)
+                                      0x98         ;; SBC A, B
+                                      0x10]})]
+    (is (= 0xFF (r/read-reg ctx :a)))
+    (is (= {:z false, :n true, :h true, :c true} (flags/all ctx)))))
+
+(deftest ^:integration add
+  (let [ctx (ctx-with {:instructions [0x31 0xFF 0x00 ;; LD SP, $00FF
+                                      0xE8 0x01      ;; ADD SP, $01
+                                      0x10]})]
+    (is (= 0x0100 (r/read-reg ctx :sp)))
+    (is (= {:z false, :n false, :h true, :c true} (flags/all ctx))))
+
+  (let [ctx (ctx-with {:instructions [0x31 0x00 0x01 ;; LD SP, $0100
+                                      0xE8 0x01      ;; ADD SP, $01
+                                      0x10]})]
+    (is (= 0x0101 (r/read-reg ctx :sp)))
+    (is (= {:z false, :n false, :h false, :c false} (flags/all ctx)))))
 
 (deftest ^:integration math-instructions
   (let [ctx-inc-1 (ctx-with {:instructions [
@@ -352,10 +440,12 @@
 
 (deftest ^:integration daa
   (let [ctx-daa-1 (ctx-with {:instructions [0x3E 0xCA   ;; LD A, 0xCA (0b1100_1010)
-                                            0x27        ;; DAA
+                                            0x27        ;; DAA 2r0010_0111
                                             0x10]})]
-    (is (= 0xD0 (r/read-reg ctx-daa-1 :a)))
-    (is (submap? {:z false, :h false, :c false} (flags/all ctx-daa-1)))))
+
+    ;; 0x30 = 0x27 | 0x60
+    (is (= 0x30 (r/read-reg ctx-daa-1 :a)))
+    (is (submap? {:z false, :h false, :c true} (flags/all ctx-daa-1)))))
 
 (deftest ^:integration cpl
   (let [ctx-cpl-1 (ctx-with {:instructions [0x3E 0xCA   ;; LD A, 0xCA (0b1100_1010)

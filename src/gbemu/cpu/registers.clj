@@ -1,4 +1,5 @@
-(ns gbemu.cpu.registers)
+(ns gbemu.cpu.registers
+  (:require [gbemu.bytes :as bytes]))
 
 (defn eight-bit? [r]
   (boolean (#{:a :f :b :c :d :e :h :l} r)))
@@ -14,18 +15,30 @@
       :hl (bit-or (bit-shift-left (regs :h) 8) (regs :l))
       (regs r))))
 
+(defn read-interrupt-flags [ctx]
+  (get-in ctx [:cpu :int-flags]))
+
+(defn write-interrupt-flags [ctx value]
+  (assoc-in ctx [:cpu :int-flags] (bytes/to-u8 value)))
+
+(defn read-ie-reg [ctx]
+  (get-in ctx [:cpu :ie-register]))
+
+(defn write-ie-reg [ctx value]
+  (assoc-in ctx [:cpu :ie-register] (bytes/to-u8 value)))
 
 (defn write-reg [ctx r val]
   (let [regs (get-in ctx [:cpu :registers])
         lo   (bit-and 0xFF val)
         hi   (bit-and 0xFF (bit-shift-right val 8))
+        u16  (bytes/to-u16 val)
         changes (case r
                   :af {:a hi :f lo}
                   :bc {:b hi :c lo}
                   :de {:d hi :e lo}
                   :hl {:h hi :l lo}
-                  :sp {:sp val}
-                  :pc {:pc val}
+                  :sp {:sp u16}
+                  :pc {:pc u16}
                   {r lo})]
     (update-in ctx [:cpu :registers] merge changes)))
 

@@ -47,6 +47,8 @@
 (defn half-diff [op1 op2]
   (- (bit-and 0x0F op1) (bit-and 0x0F op2)))
 
+(defn mask-sum [mask & args]
+  (reduce (fn [sm op] (+ sm (bit-and mask op))) 0 args))
 
 (defn slice
   "Take a slice (copy) array of byte array `bytes`"
@@ -54,6 +56,7 @@
   (java.util.Arrays/copyOfRange bytes from to))
 
 (comment
+
   (spit-bytes "resources/roms/test.gb" (byte-array [0xC5 0xD5]))
   (concat (byte-array [0x01]) (byte-array [0xFF]))
 

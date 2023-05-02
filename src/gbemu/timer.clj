@@ -19,7 +19,7 @@
         ctx'                 (assoc-in ctx :div div'
                                            :tima tima'')]
      (if interrupt
-       (interrupt/request-interrupt ctx :timer)
+       (interrupt/request ctx :timer)
        ctx)))
 
 (defn write [ctx addr value]

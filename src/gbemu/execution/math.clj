@@ -45,24 +45,23 @@
 
 ;; 16 bit reg but 8 bit operands
 (defn- add-sp [ctx]
-    ;; TODO special signed int handling for SP add
-      (let [sp                               (r/read-reg ctx :sp)
-            {:keys [cur-instr fetched-data]} (ctx :cpu)
-            {:keys [reg1] :as inst}          cur-instr
-            operand                          (bytes/extend-sign fetched-data)
-            v                                (+ sp operand)
-            half-sum                         (+ (bit-and 0x0F fetched-data) (bit-and 0x0F sp))
-            h                                (<= 0x10 half-sum)
-            c                                (< 0xFFFF v)
-            v'                               (bit-and 0xFFFF v)]
-        (-> ctx
-          (r/write-reg :sp v')
-          (flags/set-flags {:z false, :n false, :h h, :c c}))))
+  (let [sp                               (r/read-reg ctx :sp)
+        {:keys [cur-instr fetched-data]} (ctx :cpu)
+        {:keys [reg1] :as inst}          cur-instr
+        operand                          (bytes/extend-sign fetched-data)
+        v                                (+ sp operand)
+        nibble-sum                       (bytes/mask-sum 0x0F fetched-data sp)
+        byte-sum                         (bytes/mask-sum 0xFF fetched-data sp)
+        h                                (<= 0x10 nibble-sum)
+        c                                (< 0xFF byte-sum)
+        v'                               (bit-and 0xFFFF v)]
+    (-> ctx
+      (r/write-reg :sp v')
+      (flags/set-flags {:z false, :n false, :h h, :c c}))))
 
 (defn- add-16-bit [ctx]
   (let [{:keys [cur-instr fetched-data]} (ctx :cpu)
-        {:keys [reg1 reg2] :as inst}    cur-instr
-        a                                (r/read-reg ctx :a)]
+        {:keys [reg1] :as inst}          cur-instr]
     ;; TODO add 1 cycle for 16 bit reg1
     (if (= :sp reg1)
       (add-sp ctx)
@@ -112,7 +111,7 @@
         (flags/set-flags {:z z, :n false, :h h, :c c'}))))
 
 (defn sub [{{:keys [cur-instr fetched-data]} :cpu :as ctx}]
-  (let [{:keys [reg1 reg2] :as inst}     cur-instr
+  (let [{:keys [reg1] :as inst}          cur-instr
         operand                          (r/read-reg ctx reg1)
         v                                (- operand fetched-data)
         h                                (neg? (bytes/half-diff operand fetched-data))
@@ -123,16 +122,16 @@
         (flags/set-flags {:z (zero? v'), :n true, :h h, :c c}))))
 
 (defn sbc [{{:keys [cur-instr fetched-data]} :cpu :as ctx}]
-  (let [{:keys [reg1 reg2] :as inst}     cur-instr
+  (let [{:keys [reg1] :as inst}          cur-instr
         operand                          (r/read-reg ctx reg1)
         c                                (if (flags/flag-set? ctx :c) 1 0)
         v                                (- operand fetched-data c)
-        h                                (pos? (- (bytes/half-diff operand fetched-data) c))
+        h                                (neg? (- (bytes/half-diff operand fetched-data) c))
         c'                               (neg? v)
         v'                               (bytes/to-unsigned v)]
     (-> ctx
         (r/write-reg reg1 v')
-        (flags/set-flags {:z (zero? v'), :n true}))))
+        (flags/set-flags {:z (zero? v'), :h h, :n true, :c c'}))))
 
 
 

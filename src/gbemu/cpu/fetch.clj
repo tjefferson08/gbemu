@@ -16,9 +16,8 @@
     (update ctx :cpu merge
       {:mem_dest 0 :dest_is_mem false}
       (case (inst :mode)
-        :a8_register {:mem_dest (bit-or 0xFF00 (bus/read-bus ctx pc))
+        :a8_register {:mem_dest (bit-or 0xFF00 (bus/read-bus ctx pc 4))
                       :dest_is_mem true
-                      :emu-cycles 1
                       :registers (r-update :pc (inc pc))}
         :implied {}
         :memloc {:fetched-data (bus/read-bus ctx reg1_val)

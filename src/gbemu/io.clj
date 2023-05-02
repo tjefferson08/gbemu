@@ -1,6 +1,6 @@
 (ns gbemu.io
   (:require [gbemu.timer :as timer]
-            [gbemu.cpu.interrupt :as interrupt]))
+            [gbemu.cpu.registers :as r]))
 
 (defn init [] {:serial-data [0 0]})
 
@@ -13,7 +13,7 @@
     0xFF05 (timer/read ctx address)
     0xFF06 (timer/read ctx address)
     0xFF07 (timer/read ctx address)
-    0xFF0F (interrupt/read-flags ctx)
+    0xFF0F (r/read-interrupt-flags ctx)
     0xFF44 0x90 ;; Speed up LCD drawing by stubbing this out
      0))
      ;; (do (println (format "Unimplemented IO register %08X" address))
@@ -29,7 +29,7 @@
     0xFF05 (timer/write ctx address value)
     0xFF06 (timer/write ctx address value)
     0xFF07 (timer/write ctx address value)
-    0xFF0F (interrupt/write-flags ctx value)
+    0xFF0F (r/write-interrupt-flags ctx value)
      ctx))
      ;; (do (println (format "Unimplemented IO register %08X" address))
      ;;     ctx)))

@@ -1,20 +1,23 @@
 (ns gbemu.cpu.interrupt
-  (:require [gbemu.bytes :as bytes]))
+  (:require [gbemu.bytes :as bytes]
+            [gbemu.cpu.registers :as r]))
 
 (def INTERRUPT_BITS {:vblank 0, :lcd-stat 1, :timer 2, :serial 3, :joypad 4})
+(def INTERRUPT_ROUTINES {:vblank 0x40, :lcd-stat 0x48, :timer 0x50, :serial 0x58, :joypad 0x60})
 
-(defn request-interrupt [ctx type]
+(defn routine-for [type]
+  (INTERRUPT_ROUTINES type))
+
+(defn request [ctx type]
   (let [bit (INTERRUPT_BITS type)]
-    (update-in ctx [:cpu :int-flags] (fn [fl] (bit-set fl bit)))))
+    (update-in ctx [:cpu :int-flags] bit-set bit)))
 
-(defn read-flags [ctx]
-  (get-in ctx [:cpu :int-flags]))
+(defn clear [ctx type]
+  (let [bit (INTERRUPT_BITS type)]
+    (update-in ctx [:cpu :int-flags] bit-clear bit)))
 
-(defn write-flags [ctx value]
-  (assoc-in ctx [:cpu :int-flags] (bytes/to-u8 value)))
-
-(defn read-ie-reg [ctx]
-  (get-in ctx [:cpu :ie-register]))
-
-(defn write-ie-reg [ctx value]
-  (assoc-in ctx [:cpu :ie-register] (bytes/to-u8 value)))
+(defn ready? [ctx type]
+  (let [bit (INTERRUPT_BITS type)
+        rdy? (bit-test (get-in ctx [:cpu :int-flags]) bit)
+        enabled? (bit-test (get-in ctx [:cpu :ie-register]) bit)]
+     (and rdy? enabled?)))

@@ -62,11 +62,11 @@
 
 
 (defn- scf [ctx]
-   (flags/set-flags {:n false, :h false, :c false}))
+   (flags/set-flags ctx {:n false, :h false, :c true}))
 
 (defn- ccf [ctx]
   (let [c (flags/flag-set? ctx :c)]
-    (flags/set-flags {:n false, :h false, :c (not c)})))
+    (flags/set-flags ctx {:n false, :h false, :c (not c)})))
 
 (defn- ei [ctx]
   (assoc-in ctx [:cpu :enabling-ime] true))

@@ -5,7 +5,11 @@
             [gbemu.cpu.fetch :as fetch]
             [gbemu.cpu.registers :as r]
             [gbemu.execution.flags :as flags]
-            [gbemu.debug :as debug]))
+            [gbemu.debug :as debug]
+            [gbemu.log :as log]
+            [gbemu.cpu.interrupt :as interrupt]
+            [gbemu.stack :as stack]
+            [gbemu.clock :as clock]))
 
 (defn init []
   {:registers {:a 0x01, :f 0xB0,
@@ -34,7 +38,7 @@
     (update-in ctx [:cpu :int-flags] (fn [fl] (bit-set fl bit)))))
 
 (defn fetch-instruction [ctx]
-  (let [pc (get-in ctx [:cpu :registers :pc])
+  (let [pc (r/read-reg ctx :pc)
         op (bus/read-bus ctx pc)]
         ;; _ (println "fetching inst " pc op)]
     (-> ctx
@@ -43,10 +47,10 @@
         (assoc-in [:cpu :registers :pc] (inc pc)))))
 
 (defn- step-halted [ctx]
-  ;; emu_cycles(1));
-  (if (pos? (get-in ctx [:cpu :int-flags]))
-     (assoc-in ctx [:cpu :halted] false)
-     ctx))
+  (let [ctx' (clock/tick ctx 4)]
+    (if (pos? (get-in ctx' [:cpu :int-flags]))
+       (assoc-in ctx' [:cpu :halted] false)
+       ctx')))
 
 (defn- doctor-log [ctx]
   (let [pc (r/read-reg ctx :pc)]
@@ -91,7 +95,8 @@
 (defn- step-running [ctx]
   (let [
         ;; _ (println (str "ctx before fetch-instr" (:cpu ctx)))
-        ctx' (fetch-instruction ctx)
+        ctx' (clock/tick (fetch-instruction ctx) 4)
+
         ;; _ (println (str "ctx after fetch-instr" (:cpu ctx')))
         ctx'' (fetch/fetch-data ctx')
         ;; _ (println (str "ctx after fetch-data" (:cpu ctx'')))
@@ -104,17 +109,29 @@
    ctx''''))
 
 (defn- handle-interrupts [ctx]
-  ctx)
+  (let [handle (fn handle [ctx type]
+                 (-> ctx
+                   (stack/push-16 (r/read-reg ctx :pc))
+                   (r/write-reg :pc (interrupt/routine-for type))
+                   (interrupt/clear :type)
+                   (update :cpu assoc :halted false, :int-master-enabled false)))]
+    (cond
+      (interrupt/ready? ctx :vblank) (handle ctx :vblank)
+      (interrupt/ready? ctx :lcd-stat) (handle ctx :lcd-stat)
+      (interrupt/ready? ctx :timer) (handle ctx :timer)
+      (interrupt/ready? ctx :serial) (handle ctx :serial)
+      (interrupt/ready? ctx :joypad) (handle ctx :joypad)
+      :else ctx)))
 
 (defn step [ctx]
   (let [ctx' (if (get-in ctx [:cpu :halted])
                (step-halted ctx)
                (step-running ctx))]
     (cond
-      (get-in ctx [:cpu :int-master-enabled]) (-> ctx' (handle-interrupts)
-                                                       (assoc-in [:cpu :enabling-ime] false))
-      (get-in ctx [:cpu :enabling-ime])       (assoc-in ctx' [:cpu :int-master-enabled] true)
-      :else                                   ctx')))
+      (get-in ctx' [:cpu :enabling-ime])       (assoc-in ctx' [:cpu :int-master-enabled] true)
+      (get-in ctx' [:cpu :int-master-enabled]) (-> ctx' (handle-interrupts)
+                                                        (assoc-in [:cpu :enabling-ime] false))
+      :else                                    ctx')))
 
 (defn run [ctx]
   (loop [ctx' ctx]

@@ -48,15 +48,14 @@
           ;; _ (emu-cycles 1)
           [hi ctx''] (stack/pop ctx')
           new-pc     (bytes/->d16 lo hi)]
-          ;; _ (println "ret ctx new-pc" new-pc (:cpu ctx''))]
       (r/write-reg ctx'' :pc new-pc))
     ctx))
       ;; cycles 1 again
 
 (defn ret-i [ctx]
   (-> ctx
-      ret
-      assoc-in [:cpu :int-master-enabled] true))
+      (assoc-in [:cpu :int-master-enabled] true)
+      ret))
 
 (defn rst [ctx]
   (jump* ctx (get-in ctx [:cpu :cur-instr :param]) true))

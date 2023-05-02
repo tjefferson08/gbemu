@@ -9,6 +9,8 @@
             [gbemu.debug :as debug]
             [gbemu.timer :as timer]))
 
+(set! *warn-on-reflection* true)
+
 (def cli-options
   [["-r" "--rom ROM" "ROM path"]
    [nil "--tick-limit TICK_LIMIT" "exit after excuting specified number of ticks"

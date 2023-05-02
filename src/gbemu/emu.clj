@@ -33,8 +33,5 @@
           (recur (update-in step-result [:emu :ticks] inc))))
      ctx)))
 
-(defn emu-cycles [cpu-cycles])
-  ;; TODO
-
 (defn delay [ms])
   ;; TODO sleep ms

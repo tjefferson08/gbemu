@@ -269,7 +269,7 @@
    0xF8 {:type :load, :mode :register_sp-plus-r8, :reg1 :hl}
    0xF9 {:type :load, :mode :register_register, :reg1 :sp, :reg2 :hl}
    0xFA {:type :load, :mode :register_a16, :reg1 :a}
-   0xFB :todo_ei
+   0xFB {:type :ei, :mode :implied}
    0xFC :none
    0xFD :none
    0xFE {:type :cp, :mode :register_d8, :reg1 :a}
