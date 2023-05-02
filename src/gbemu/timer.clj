@@ -16,8 +16,7 @@
         tick?                (and enabled? (bit-test div bit) (not (bit-test div' bit)))
         tima'                (if tick? (inc tima) tima)
         [tima'', interrupt]  (if (= 0xFF tima') [tma true] [tima' false])
-        ctx'                 (assoc-in ctx :div div'
-                                           :tima tima'')]
+        ctx'                 (update ctx :timer assoc :div div' :tima tima'')]
      (if interrupt
        (interrupt/request ctx :timer)
        ctx)))

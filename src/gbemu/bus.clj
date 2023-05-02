@@ -7,7 +7,7 @@
             [gbemu.log :as log]
             [gbemu.clock :as clock]))
 
-(defn- read [ctx address]
+(defn- read* [ctx address]
   (b/to-unsigned
     (unchecked-byte
       (cond
@@ -82,13 +82,20 @@
 
       :else (throw (Exception. (format "Unmapped bus address: %04X" address))))))
 
-(defn read-bus
+(defn read
   "Tick `cycles` while reading bus, simulating real hardward timing & interrupts"
   ([ctx address]
-   (read-bus ctx address 0))
+   (read ctx address 0))
 
   ([ctx address cycles]
-   (clock/tick (read ctx address) cycles)))
+   (let [value (read* ctx address)]
+     [value (clock/tick ctx cycles)])))
+
+;; TODO remove after migrating to `read`
+(defn read-bus
+  "Tick `cycles` while reading bus, simulating real hardward timing & interrupts"
+  [ctx address]
+  (read* ctx address))
 
 (defn write-bus
  ([ctx address value]

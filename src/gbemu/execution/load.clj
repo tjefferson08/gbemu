@@ -6,8 +6,8 @@
 
 (defn load [ctx]
   (let [{:keys [fetched-data cur-instr mem_dest dest_is_mem] :as cpu} (:cpu ctx)
-        {:keys [mode reg1 reg2] :as inst} cur-instr
-        _ (println cpu)]
+        {:keys [mode reg1 reg2] :as inst} cur-instr]
+        ;; _ (println cpu)]
     (cond
       (and dest_is_mem reg2 (r/sixteen-bit? reg2)) (bus/write-bus-16 ctx mem_dest fetched-data)
       dest_is_mem                                  (bus/write-bus ctx mem_dest fetched-data)

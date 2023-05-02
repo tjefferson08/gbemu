@@ -15,6 +15,9 @@
       :hl (bit-or (bit-shift-left (regs :h) 8) (regs :l))
       (regs r))))
 
+(defn read-regs [ctx & rs]
+  (map #(read-reg ctx %) rs))
+
 (defn read-interrupt-flags [ctx]
   (get-in ctx [:cpu :int-flags]))
 
