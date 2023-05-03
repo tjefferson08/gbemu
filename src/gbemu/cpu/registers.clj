@@ -1,5 +1,6 @@
 (ns gbemu.cpu.registers
-  (:require [gbemu.bytes :as bytes]))
+  (:require [gbemu.bytes :as bytes]
+            [gbemu.log :as log]))
 
 (defn eight-bit? [r]
   (boolean (#{:a :f :b :c :d :e :h :l} r)))
@@ -22,6 +23,7 @@
   (get-in ctx [:cpu :int-flags]))
 
 (defn write-interrupt-flags [ctx value]
+  (log/stderr (str "writing int flags: " value))
   (assoc-in ctx [:cpu :int-flags] (bytes/to-u8 value)))
 
 (defn read-ie-reg [ctx]

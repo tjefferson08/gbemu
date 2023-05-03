@@ -18,6 +18,6 @@
 
 (defn ready? [ctx type]
   (let [bit (INTERRUPT_BITS type)
-        rdy? (bit-test (get-in ctx [:cpu :int-flags]) bit)
-        enabled? (bit-test (get-in ctx [:cpu :ie-register]) bit)]
+        rdy? (bit-test (r/read-interrupt-flags ctx) bit)
+        enabled? (bit-test (r/read-ie-reg ctx) bit)]
      (and rdy? enabled?)))

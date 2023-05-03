@@ -1,3 +1,5 @@
 /.cpcache/
 /.nrepl-port
 /resources/roms/tetris.gb
+/.lsp/
+/.clj-kondo/

@@ -31,12 +31,6 @@
    ;; TODO: timer goes to 0xABCC when cpu reset?
    :int-flags 0x00})
 
-(def INTERRUPT_BITS {:vblank 0, :lcd-stat 1, :timer 2, :serial 3, :joypad 4})
-
-(defn request-interrupt [ctx type]
-  (let [bit (INTERRUPT_BITS type)]
-    (update-in ctx [:cpu :int-flags] (fn [fl] (bit-set fl bit)))))
-
 (defn fetch-instruction [ctx]
   (let [pc         (r/read-reg ctx :pc)
         [op, ctx'] (bus/read ctx pc 4)]
@@ -48,9 +42,9 @@
 
 (defn- step-halted [ctx]
   (let [ctx' (clock/tick ctx 4)]
-    (if (pos? (get-in ctx' [:cpu :int-flags]))
-       (assoc-in ctx' [:cpu :halted] false)
-       ctx')))
+    (if (zero? (get-in ctx' [:cpu :int-flags]))
+       ctx'
+       (assoc-in ctx' [:cpu :halted] false))))
 
 (defn- doctor-log [ctx]
   (let [pc (r/read-reg ctx :pc)]
@@ -93,27 +87,20 @@
              (r/read-reg ctx :sp))))
 
 (defn- step-running [ctx]
-  (let [
-        ;; _ (println (str "ctx before fetch-instr" (:cpu ctx)))
-        ctx' (fetch-instruction ctx)
-
-        ;; _ (println (str "ctx after fetch-instr" (:cpu ctx')))
+  (let [ctx' (fetch-instruction ctx)
         ctx'' (fetch/fetch-data ctx')
-        ;; _ (println (str "ctx after fetch-data" (:cpu ctx'')))
         _ (.write (:log ctx'') (str (doctor-log ctx) "\n"))
-        ;; _ (println (debug-log ctx))
-
         ctx''' (debug/update ctx'')
         _ (debug/print ctx''')
         ctx'''' (exec/execute ctx''')]
-   ctx''''))
+    ctx''''))
 
 (defn- handle-interrupts [ctx]
   (let [handle (fn handle [ctx type]
                  (-> ctx
                    (stack/push-16 (r/read-reg ctx :pc))
                    (r/write-reg :pc (interrupt/routine-for type))
-                   (interrupt/clear :type)
+                   (interrupt/clear type)
                    (update :cpu assoc :halted false, :int-master-enabled false)))]
     (cond
       (interrupt/ready? ctx :vblank) (handle ctx :vblank)
@@ -126,17 +113,21 @@
 (defn step [ctx]
   (let [ctx' (if (get-in ctx [:cpu :halted])
                (step-halted ctx)
-               (step-running ctx))]
-    (cond
-      (get-in ctx' [:cpu :enabling-ime])       (assoc-in ctx' [:cpu :int-master-enabled] true)
-      (get-in ctx' [:cpu :int-master-enabled]) (-> ctx' (handle-interrupts)
-                                                        (assoc-in [:cpu :enabling-ime] false))
-      :else                                    ctx')))
+               (step-running ctx))
+        ctx'' (if (get-in ctx' [:cpu :enabling-ime])
+                (assoc-in ctx' [:cpu :int-master-enabled] true)
+                ctx')
+        ctx''' (if (get-in ctx'' [:cpu :int-master-enabled])
+                 (-> ctx'' (handle-interrupts)
+                           (assoc-in [:cpu :enabling-ime] false))
+                 ctx'')]
+    ctx'''))
 
 (defn run [ctx]
   (loop [ctx' ctx]
     (if (get-in ctx' [:cpu :stopped])
-      ctx'
+      (do (.flush (:log ctx'))
+        ctx')
       (recur (step ctx')))))
 
 (comment
