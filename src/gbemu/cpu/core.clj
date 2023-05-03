@@ -40,7 +40,7 @@
 (defn fetch-instruction [ctx]
   (let [pc (r/read-reg ctx :pc)
         op (bus/read-bus ctx pc)]
-        ;; _ (println "fetching inst " pc op)]
+        ;; _ (println "fetching inst " pc (i/for-opcode op))]
     (-> ctx
         (update :cpu assoc :cur-opcode op
                            :cur-instr (i/for-opcode op))
@@ -100,7 +100,7 @@
         ;; _ (println (str "ctx after fetch-instr" (:cpu ctx')))
         ctx'' (fetch/fetch-data ctx')
         ;; _ (println (str "ctx after fetch-data" (:cpu ctx'')))
-        _ (println (doctor-log ctx))
+        _ (.write (:log ctx'') (str (doctor-log ctx) "\n"))
         ;; _ (println (debug-log ctx))
 
         ctx''' (debug/update ctx'')

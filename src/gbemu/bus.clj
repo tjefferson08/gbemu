@@ -83,13 +83,19 @@
       :else (throw (Exception. (format "Unmapped bus address: %04X" address))))))
 
 (defn read
-  "Tick `cycles` while reading bus, simulating real hardward timing & interrupts"
+  "Tick `cycles` while reading bus, simulating real hardward timing & interrupts.
+   Returns tuple of read-result and new, potentially changed context"
   ([ctx address]
    (read ctx address 0))
 
   ([ctx address cycles]
    (let [value (read* ctx address)]
      [value (clock/tick ctx cycles)])))
+
+(defn read!
+  "Just read the value, don't tick any cycles and return only the value"
+  [ctx address]
+  (read* ctx address))
 
 ;; TODO remove after migrating to `read`
 (defn read-bus

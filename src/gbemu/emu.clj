@@ -19,7 +19,7 @@
   ;; TODO initialize graphics
   ;; Initialize true-type-fonts (TTF)
   ;; initialize CPU
-   (if (and tick-limit (< tick-limit (get-in ctx [:emu :ticks])))
+   (if (and tick-limit (< tick-limit ticks))
      (throw (Exception. "TICK LIMIT EXCEEDED")))
 
   ;; rework to be clojureish
@@ -29,6 +29,9 @@
        (let [
              ;; _ (println "before step" (:cpu ctx))
              step-result (cpu/step ctx)]
+             ;; step-result (if (zero? (mod ticks 100))
+             ;;               (persistent! (transient step-result))
+             ;;               step-result)]
              ;; _ (println "after step" (:cpu step-result))]
           (recur (update-in step-result [:emu :ticks] inc))))
      ctx)))

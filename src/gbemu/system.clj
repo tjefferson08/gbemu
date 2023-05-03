@@ -6,6 +6,7 @@
             [gbemu.emu :as emu]
             [gbemu.ram :as ram]
             [gbemu.io :as io]
+            [clojure.java.io :as jio]
             [gbemu.debug :as debug]
             [gbemu.timer :as timer]))
 
@@ -33,4 +34,5 @@
         {:keys [headless rom tick-limit]} (:options opts)
         ctx (-> (init rom)
                 (update :emu assoc :headless headless :tick-limit tick-limit))]
-    (emu/run ctx)))
+    (with-open [o (jio/writer "test.txt")]
+      (emu/run (assoc ctx :log o)))))
