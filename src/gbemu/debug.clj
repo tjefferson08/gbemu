@@ -5,8 +5,8 @@
 (defn init [] {:msg []})
 
 (defn update [ctx]
-  (if (= 0x81 (bus/read-bus ctx 0xFF02))
-    (let [c (bus/read-bus ctx 0xFF01)]
+  (if (= 0x81 (bus/read! ctx 0xFF02))
+    (let [c (bus/read! ctx 0xFF01)]
       (-> ctx (update-in [:debug :msg] conj c)
               (bus/write-bus 0xFF02 0)))
     ctx))

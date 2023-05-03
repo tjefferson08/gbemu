@@ -38,8 +38,8 @@
     (update-in ctx [:cpu :int-flags] (fn [fl] (bit-set fl bit)))))
 
 (defn fetch-instruction [ctx]
-  (let [pc (r/read-reg ctx :pc)
-        op (bus/read-bus ctx pc)]
+  (let [pc         (r/read-reg ctx :pc)
+        [op, ctx'] (bus/read ctx pc 4)]
         ;; _ (println "fetching inst " pc (i/for-opcode op))]
     (-> ctx
         (update :cpu assoc :cur-opcode op
@@ -65,10 +65,10 @@
       (r/read-reg ctx :l)
       (r/read-reg ctx :sp)
       pc
-      (bus/read-bus ctx pc)
-      (bus/read-bus ctx (+ 1 pc))
-      (bus/read-bus ctx (+ 2 pc))
-      (bus/read-bus ctx (+ 3 pc)))))
+      (bus/read! ctx pc)
+      (bus/read! ctx (+ 1 pc))
+      (bus/read! ctx (+ 2 pc))
+      (bus/read! ctx (+ 3 pc)))))
 
 (defn- debug-log [ctx]
   (let [pc (r/read-reg ctx :pc)]
@@ -77,8 +77,8 @@
              (get-in ctx [:emu :ticks])
              (get-in ctx [:cpu :cur-instr])
              (get-in ctx [:cpu :cur-opcode])
-             (bus/read-bus ctx (+ pc 1))
-             (bus/read-bus ctx (+ pc 2))
+             (bus/read! ctx (+ pc 1))
+             (bus/read! ctx (+ pc 2))
              (r/read-reg ctx :a)
              (if (flags/flag-set? ctx :z) "Z" "-")
              (if (flags/flag-set? ctx :n) "N" "-")
@@ -95,7 +95,7 @@
 (defn- step-running [ctx]
   (let [
         ;; _ (println (str "ctx before fetch-instr" (:cpu ctx)))
-        ctx' (clock/tick (fetch-instruction ctx) 4)
+        ctx' (fetch-instruction ctx)
 
         ;; _ (println (str "ctx after fetch-instr" (:cpu ctx')))
         ctx'' (fetch/fetch-data ctx')

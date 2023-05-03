@@ -9,10 +9,10 @@
         cur-opcode                   (get-in ctx [:cpu :cur-opcode])
         {:keys [reg1 mode] :as inst} cur-instr
         inc-mem (fn [ctx]
-                  (let [addr (r/read-reg ctx reg1)
-                        v    (inc (bus/read-bus ctx addr))
-                        v'   (bytes/to-unsigned v)]
-                   [v' (bus/write-bus ctx addr v')]))
+                  (let [addr        (r/read-reg ctx reg1)
+                        [v ctx']    (bus/read ctx addr)
+                        v'          (bytes/to-unsigned (inc v))]
+                   [v' (bus/write-bus ctx' addr v')]))
         inc-reg (fn [ctx]
                    (let [v    (inc (r/read-reg ctx reg1))
                          ctx' (r/write-reg ctx reg1 v)
@@ -28,10 +28,10 @@
         cur-opcode                   (get-in ctx [:cpu :cur-opcode])
         {:keys [reg1 mode] :as inst} cur-instr
         dec-mem (fn [ctx]
-                  (let [addr (r/read-reg ctx reg1)
-                        v    (dec (bus/read-bus ctx addr))
-                        v'   (bytes/to-unsigned v)]
-                   [v' (bus/write-bus ctx addr v')]))
+                  (let [addr       (r/read-reg ctx reg1)
+                        [v ctx']   (bus/read ctx addr)
+                        v'         (bytes/to-unsigned (dec v))]
+                   [v' (bus/write-bus ctx' addr v')]))
         dec-reg (fn [ctx]
                    (let [v    (dec (r/read-reg ctx reg1))
                          ctx' (r/write-reg ctx reg1 v)

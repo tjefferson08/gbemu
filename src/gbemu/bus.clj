@@ -45,7 +45,7 @@
 
         :else (throw (Exception. (format "Unmapped bus address: %04X" address)))))))
 
-(defn- write [ctx address value]
+(defn- write* [ctx address value]
   (let [value (b/to-unsigned (unchecked-byte value))]
     (cond
       ;; 0x0000 - 0x3FFF : ROM Bank 0)
@@ -86,7 +86,7 @@
   "Tick `cycles` while reading bus, simulating real hardward timing & interrupts.
    Returns tuple of read-result and new, potentially changed context"
   ([ctx address]
-   (read ctx address 0))
+   (read ctx address 4))
 
   ([ctx address cycles]
    (let [value (read* ctx address)]
@@ -97,24 +97,29 @@
   [ctx address]
   (read* ctx address))
 
-;; TODO remove after migrating to `read`
-(defn read-bus
-  "Tick `cycles` while reading bus, simulating real hardward timing & interrupts"
-  [ctx address]
-  (read* ctx address))
+(defn write
+ ([ctx address value]
+  (write ctx address value 4))
+
+ ([ctx address value cycles]
+  (clock/tick (write* ctx address value) cycles)))
+
+(defn write!
+  "Just write the value, don't tick any cycles"
+  [ctx address value]
+  (write* ctx address value))
 
 (defn write-bus
  ([ctx address value]
-  (write-bus ctx address value 0))
+  (write-bus ctx address value 4))
 
  ([ctx address value cycles]
   (clock/tick (write ctx address value) cycles)))
   
-
 (defn write-bus-16 [ctx address value]
   (-> ctx
-     (write-bus (inc address) (bit-shift-right value 8) 4)
-     (write-bus address (bit-and 0x00FF value) 4)))
+     (write-bus (inc address) (bit-shift-right value 8))
+     (write-bus address (bit-and 0x00FF value))))
 
 (comment
 

@@ -20,9 +20,9 @@
 (defn pop [ctx]
   (let [sp (r/read-reg ctx :sp)
         sp' (inc sp)
-        val (bus/read-bus ctx sp)
-        ctx' (-> ctx (r/write-reg :sp sp'))]
-     [val ctx']))
+        [val ctx'] (bus/read ctx sp)
+        ctx''      (r/write-reg ctx' :sp sp')]
+     [val ctx'']))
 
 
 (defn pop-16 [ctx]

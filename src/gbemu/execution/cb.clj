@@ -6,14 +6,14 @@
 (defn- read-for [ctx op]
   (let [low-3-bits (bit-and 2r0111 op)]
     (case low-3-bits
-      0x0 (r/read-reg ctx :b)
-      0x1 (r/read-reg ctx :c)
-      0x2 (r/read-reg ctx :d)
-      0x3 (r/read-reg ctx :e)
-      0x4 (r/read-reg ctx :h)
-      0x5 (r/read-reg ctx :l)
-      0x6 (bus/read-bus ctx (r/read-reg ctx :hl)) ;; TODO cycles
-      0x7 (r/read-reg ctx :a))))
+      0x0 [(r/read-reg ctx :b) ctx]
+      0x1 [(r/read-reg ctx :c) ctx]
+      0x2 [(r/read-reg ctx :d) ctx]
+      0x3 [(r/read-reg ctx :e) ctx]
+      0x4 [(r/read-reg ctx :h) ctx]
+      0x5 [(r/read-reg ctx :l) ctx]
+      0x6 (bus/read ctx (r/read-reg ctx :hl))
+      0x7 [(r/read-reg ctx :a) ctx])))
 
 (defn- write-for [ctx op val]
   (let [low-3-bits (bit-and 2r0111 op)]
@@ -24,7 +24,7 @@
      0x3 (r/write-reg ctx :e val)
      0x4 (r/write-reg ctx :h val)
      0x5 (r/write-reg ctx :l val)
-     0x6 (bus/write-bus ctx (r/read-reg ctx :hl) val) ;; TODO cycles
+     0x6 (bus/write-bus ctx (r/read-reg ctx :hl) val)
      0x7 (r/write-reg ctx :a val))))
 
 ;; TODO use multimethod to help vary dispatch for bit ops vs. rotate/shift?
@@ -107,11 +107,11 @@
             (-> ctx (write-for op v')))))))
 
 (defn cb-prefix [{{:keys [cur-instr fetched-data]} :cpu :as ctx}]
-  (let [op fetched-data
-        in (read-for ctx op)
-        handler (if (< op 0x40) (rotate-shift-op-for op) (bit-op-for op))
-        ctx' (handler ctx in)]
-    ctx'))
+  (let [op         fetched-data
+        [in ctx'] (read-for ctx op)
+        handler    (if (< op 0x40) (rotate-shift-op-for op) (bit-op-for op))
+        ctx'' (handler ctx' in)]
+    ctx''))
 
 (comment
   (format "%02X" (bit-and 2r111 (bit-shift-right 0xB0 3)))

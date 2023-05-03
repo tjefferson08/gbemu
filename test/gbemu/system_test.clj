@@ -24,8 +24,9 @@
   (let [rom-file     (clojure.java.io/file "/tmp/tempfile-rom.gb")
         new-rom-bytes (byte-array (build-rom-vec instructions regions))
         _            (bytes/spit-bytes rom-file new-rom-bytes)
-        ctx          (sut/init rom-file)]
-     (cpu/run ctx)))
+        ctx          (sut/init rom-file)
+        ctx'         (assoc ctx :log *out*)]
+     (cpu/run ctx')))
 
 (deftest ^:integration stack-operations
   (let [ctx (ctx-with {:instructions [
@@ -60,10 +61,10 @@
                                          0x10]})]
     (is (= 0xA1 (r/read-reg load-1 :a)))
     (is (= 0xD601 (r/read-reg load-1 :bc)))
-    (is (= 0xA1 (bus/read-bus load-1 0xD600)))
-    (is (= 0xA1 (bus/read-bus load-1 0xD601)))
-    (is (= 0xFF (bus/read-bus load-1 0xD602)))
-    (is (= 0xDF (bus/read-bus load-1 0xD603))))
+    (is (= 0xA1 (bus/read! load-1 0xD600)))
+    (is (= 0xA1 (bus/read! load-1 0xD601)))
+    (is (= 0xFF (bus/read! load-1 0xD602)))
+    (is (= 0xDF (bus/read! load-1 0xD603))))
 
   (let [load-2 (ctx-with {:instructions [0x21 0x82 0xFF ;; LD HL, $FF82
                                          0x36 0x99      ;; LD (HL), $99
@@ -71,7 +72,7 @@
                                          0x10]})]
     (is (= 0xFF82 (r/read-reg load-2 :hl)))
     (is (= 0x99 (r/read-reg load-2 :c)))
-    (is (= 0x99 (bus/read-bus load-2 0xFF82)))))
+    (is (= 0x99 (bus/read! load-2 0xFF82)))))
 
 (deftest ^:integration load-with-special-sp-addressing-mode-opcode-48
   (let [ctx (ctx-with {:instructions [0x21 0x99 0x88 ;; LD HL, $8899
@@ -105,7 +106,7 @@
                                           0xF0 0x01      ;; LDH A, ($FF01)
                                           0x10]})]
     (is (= 0x01 (r/read-reg loadh-1 :a)))
-    (is (= 0x01 (bus/read-bus loadh-1 0xFF01)))))
+    (is (= 0x01 (bus/read! loadh-1 0xFF01)))))
 
 (deftest ^:integration load-and-inc-instructions
   (let [load-hl+ (ctx-with {:instructions [0x3E 0x01      ;; LD A, $01
@@ -131,11 +132,11 @@
                                            0x10]})]
     (is (= 0xFF7F (r/read-reg load-hl+ :hl)))
     (is (= (+ 0x01 0x11 0x11 0x21) (r/read-reg load-hl+ :b)))
-    (is (= 0x00 (bus/read-bus load-hl+ 0xFF7F)))
-    (is (= 0x01 (bus/read-bus load-hl+ 0xFF80)))
-    (is (= 0x11 (bus/read-bus load-hl+ 0xFF81)))
-    (is (= 0x21 (bus/read-bus load-hl+ 0xFF82)))
-    (is (= 0x00 (bus/read-bus load-hl+ 0xFF83)))))
+    (is (= 0x00 (bus/read! load-hl+ 0xFF7F)))
+    (is (= 0x01 (bus/read! load-hl+ 0xFF80)))
+    (is (= 0x11 (bus/read! load-hl+ 0xFF81)))
+    (is (= 0x21 (bus/read! load-hl+ 0xFF82)))
+    (is (= 0x00 (bus/read! load-hl+ 0xFF83)))))
 
 (deftest ^:integration load-and-inc-instructions-2
   (let [load-hl+ (ctx-with {:instructions [0x3E 0x01      ;; LD A, $01
@@ -147,9 +148,9 @@
                                            0x32           ;; LD (HL-), A
                                            0x10]})]
     (is (= 0xFF81 (r/read-reg load-hl+ :hl)))
-    (is (= 0x01 (bus/read-bus load-hl+ 0xFF80)))
-    (is (= 0x11 (bus/read-bus load-hl+ 0xFF81)))
-    (is (= 0x21 (bus/read-bus load-hl+ 0xFF82)))))
+    (is (= 0x01 (bus/read! load-hl+ 0xFF80)))
+    (is (= 0x11 (bus/read! load-hl+ 0xFF81)))
+    (is (= 0x21 (bus/read! load-hl+ 0xFF82)))))
 
 
 (deftest ^:integration reti
@@ -236,7 +237,7 @@
                                             0x34           ;; INC (HL)
                                             0x35           ;; DEC (HL)
                                             0x10]})]
-    (is (= 0x01 (bus/read-bus ctx-inc-2 0xC001))))
+    (is (= 0x01 (bus/read! ctx-inc-2 0xC001))))
 
   (let [ctx-16-bit-add (ctx-with {:instructions [
                                                  0x31 0xAA 0x00 ;; LD SP, 0x00AA
@@ -273,7 +274,7 @@
                                                 0x36 0xFA      ;; LD $(HL), 0xFA
                                                 0x86           ;; ADD A,$(HL) (A=0x??)
                                                 0x10]})]
-    (is (= 0xFA (bus/read-bus ctx-8-bit-add 0xC001)))
+    (is (= 0xFA (bus/read! ctx-8-bit-add 0xC001)))
     (is (= 0x7A (r/read-reg ctx-8-bit-add :a)))
     (is (not (flags/flag-set? ctx-8-bit-add :z)))
     (is (flags/flag-set? ctx-8-bit-add :c))))
@@ -304,11 +305,11 @@
                                             0x79           ;; LD A,C
                                             0xEA 0x01 0xD0 ;; LD $(0xD001),A
                                             0x10]})]
-    (is (= 0x82 (bus/read-bus ctx-logic 0xC000)))
-    (is (= 0xC6 (bus/read-bus ctx-logic 0xC001)))
-    (is (= 0x6C (bus/read-bus ctx-logic 0xC002)))
-    (is (= 0x6C (bus/read-bus ctx-logic 0xC003)))
-    (let [f-after-cp (bus/read-bus ctx-logic 0xD001)]
+    (is (= 0x82 (bus/read! ctx-logic 0xC000)))
+    (is (= 0xC6 (bus/read! ctx-logic 0xC001)))
+    (is (= 0x6C (bus/read! ctx-logic 0xC002)))
+    (is (= 0x6C (bus/read! ctx-logic 0xC003)))
+    (let [f-after-cp (bus/read! ctx-logic 0xD001)]
       (is (not (flags/flag-set? f-after-cp :z)))
       (is (flags/flag-set? f-after-cp :c))
       (is (flags/flag-set? f-after-cp :n))
@@ -319,7 +320,7 @@
                                               0x3E 0x31      ;; LD A, $31
                                               0xAE           ;; XOR (HL)
                                               0x10]})]
-    (is (= 0xDE (bus/read-bus ctx-logic-2 0xFF80)))
+    (is (= 0xDE (bus/read! ctx-logic-2 0xFF80)))
     (is (= 0xEF (r/read-reg ctx-logic-2 :a)))))
 
 (deftest ^:integration rotate-shift-instructions
@@ -328,7 +329,7 @@
                                             0x78           ;; LD A,B
                                             0xEA 0x00 0xC0 ;; LD $(0xC000),A
                                             0x10]})]
-    (is (= 0x8D (bus/read-bus ctx-rlc-1 0xC000)))
+    (is (= 0x8D (bus/read! ctx-rlc-1 0xC000)))
     (is (= {:z false, :n false :h false, :c true} (flags/all ctx-rlc-1))))
 
   (let [ctx-rrc-1 (ctx-with {:instructions [0x0E 0xC7      ;; LD C, 0xC7 (0b1100_0111)
@@ -336,7 +337,7 @@
                                             0x79           ;; LD A,C
                                             0xEA 0x00 0xC0 ;; LD $(0xC000),A
                                             0x10]})]
-    (is (= 0xE3 (bus/read-bus ctx-rrc-1 0xC000)))
+    (is (= 0xE3 (bus/read! ctx-rrc-1 0xC000)))
     (is (= {:z false, :n false :h false, :c true} (flags/all ctx-rrc-1))))
 
   (let [ctx-rl-1 (ctx-with {:instructions [0x3E 0xC7      ;; LD A, 0xC7 (0b1100_0111)
@@ -346,7 +347,7 @@
                                            0x7A           ;; LD A,B
                                            0xEA 0x00 0xC0 ;; LD $(0xC000),A
                                            0x10]})]
-    (is (= 0x8E (bus/read-bus ctx-rl-1 0xC000)))
+    (is (= 0x8E (bus/read! ctx-rl-1 0xC000)))
     (is (= {:z false, :n false :h false, :c true} (flags/all ctx-rl-1))))
 
   (let [ctx-rr-1 (ctx-with {:instructions [0x3E 0xC7      ;; LD A, 0xC7 (0b1100_0111)
@@ -356,7 +357,7 @@
                                            0x7B           ;; LD A,E
                                            0xEA 0x00 0xC0 ;; LD $(0xC000),A
                                            0x10]})]
-    (is (= 0x63 (bus/read-bus ctx-rr-1 0xC000)))
+    (is (= 0x63 (bus/read! ctx-rr-1 0xC000)))
     (is (= {:z false, :n false :h false, :c true} (flags/all ctx-rr-1))))
 
   (let [ctx-sla-1 (ctx-with {:instructions [0x26 0xC7      ;; LD H, 0xC7 (0b1100_0111)
@@ -364,7 +365,7 @@
                                             0x7C           ;; LD A,H
                                             0xEA 0x00 0xC0 ;; LD $(0xC000),A
                                             0x10]})]
-    (is (= 0x8E (bus/read-bus ctx-sla-1 0xC000)))
+    (is (= 0x8E (bus/read! ctx-sla-1 0xC000)))
     (is (= {:z false, :n false :h false, :c true} (flags/all ctx-sla-1))))
 
   (let [ctx-sra-1 (ctx-with {:instructions [0x2E 0xC7      ;; LD H, 0xC7 (0b1100_0111)
@@ -372,21 +373,21 @@
                                             0x7D           ;; LD A,L
                                             0xEA 0x00 0xC0 ;; LD $(0xC000),A
                                             0x10]})]
-    (is (= 0xE3 (bus/read-bus ctx-sra-1 0xC000)))
+    (is (= 0xE3 (bus/read! ctx-sra-1 0xC000)))
     (is (= {:z false, :n false :h false, :c true} (flags/all ctx-sra-1))))
 
  (let [ctx-swap-1 (ctx-with {:instructions [0x21 0x00 0xC0 ;; LD HL, 0xC000
                                             0x36 0xA6      ;; LD $(HL), 0xA6
                                             0xCB 0x36      ;; SWAP $(HL) $(HL)=0x6A
                                             0x10]})]
-   (is (= 0x6A (bus/read-bus ctx-swap-1 0xC000)))
+   (is (= 0x6A (bus/read! ctx-swap-1 0xC000)))
    (is (= {:z false, :n false :h false, :c false} (flags/all ctx-swap-1))))
 
  (let [ctx-srl-1 (ctx-with {:instructions [0x3E 0xC2      ;; LD A, 0xC2   (0b1100_0011)
                                            0xCB 0x3F      ;; SRL A A=0x61 (0b0110_0001)
                                            0xEA 0x00 0xC0 ;; LD $(0xC000),A
                                            0x10]})]
-   (is (= 0x61 (bus/read-bus ctx-srl-1 0xC000)))
+   (is (= 0x61 (bus/read! ctx-srl-1 0xC000)))
    (is (= {:z false, :n false :h false, :c false} (flags/all ctx-srl-1)))))
 
 (deftest ^:integration bit-instructions
@@ -404,13 +405,13 @@
                                             0x36 0xE6      ;; LD $(HL), 0xE6 = 2r11100110
                                             0xCB 0xB6      ;; RES 6,$(HL) $(HL)=0xA6 2r10100110
                                             0x10]})]
-    (is (= 0xA6 (bus/read-bus ctx-res-1 0xC000))))
+    (is (= 0xA6 (bus/read! ctx-res-1 0xC000))))
 
   (let [ctx-set-1 (ctx-with {:instructions [0x21 0x00 0xC0 ;; LD HL, 0xC000
                                             0x36 0xE6      ;; LD $(HL), 0xE6 = 2r11100110
                                             0xCB 0xE6      ;; RES 6,$(HL) $(HL)=0xA6 2r10100110
                                             0x10]})]
-    (is (= 0xF6 (bus/read-bus ctx-set-1 0xC000)))))
+    (is (= 0xF6 (bus/read! ctx-set-1 0xC000)))))
 
 (deftest ^:integration other-rotate-instructions
   (let [ctx-rlca-1 (ctx-with {:instructions [0x3E 0xC6   ;; LD A, 0xC6 (0b1100_0110)
