@@ -5,7 +5,8 @@
             [gbemu.cpu.registers :as r]
             [gbemu.bus :as bus]
             [gbemu.execution.flags :as flags]
-            [gbemu.cpu.core :as cpu]))
+            [gbemu.cpu.core :as cpu]
+            [gbemu.timer :as timer]))
 
 (defn submap? [a-map b-map]
  (every? (fn [[k _ :as entry]] (= entry (find b-map k))) a-map))
@@ -25,7 +26,7 @@
         new-rom-bytes (byte-array (build-rom-vec instructions regions))
         _            (bytes/spit-bytes rom-file new-rom-bytes)
         ctx          (sut/init rom-file)
-        ctx'         (assoc ctx :log *out*)]
+        ctx'         (assoc ctx :log *out* :timer (timer/init))]
      (cpu/run ctx')))
 
 (deftest ^:integration stack-operations

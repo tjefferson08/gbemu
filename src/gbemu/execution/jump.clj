@@ -2,7 +2,8 @@
   (:require [gbemu.execution.flags :as flags]
             [gbemu.stack :as stack]
             [gbemu.cpu.registers :as r]
-            [gbemu.bytes :as bytes]))
+            [gbemu.bytes :as bytes]
+            [gbemu.clock :as clock]))
 
 (defn- check-cond [ctx]
   (let [z-set? (flags/flag-set? ctx :z)
@@ -20,10 +21,9 @@
   ([ctx addr push-pc]
    (let [pc (r/read-reg ctx :pc)]
      (if (check-cond ctx)
-       (let [ctx' (if push-pc (stack/push-16 ctx pc) ctx) ;; TODO 2 more cycles with a push
+       (let [ctx' (if push-pc (stack/push-16 ctx pc) ctx)
              new-pc addr]
-         ;; emu/cycles 1())
-         (r/write-reg ctx' :pc new-pc))
+         (r/write-reg (clock/tick ctx' 4) :pc new-pc))
        ctx))))
 
 
@@ -42,15 +42,17 @@
     ctx'))
 
 (defn ret [ctx]
-  ;; emu cycles 1 if cond not= none)
-  (if (check-cond ctx)
-    (let [[lo ctx'] (stack/pop ctx)
-          ;; _ (emu-cycles 1)
-          [hi ctx''] (stack/pop ctx')
-          new-pc     (bytes/->d16 lo hi)]
-      (r/write-reg ctx'' :pc new-pc))
-    ctx))
-      ;; cycles 1 again
+  (let [ctx-in (if (= :always (get-in ctx [:cpu :cur-instr :cond]))
+                 ctx
+                 (clock/tick ctx 4))]
+    (if (check-cond ctx-in)
+        (let [[lo ctx'] (stack/pop ctx-in)
+              ;; _ (emu-cycles 1)
+              [hi ctx''] (stack/pop ctx')
+              new-pc     (bytes/->d16 lo hi)]
+          (clock/tick (r/write-reg ctx'' :pc new-pc) 4))
+        ctx)))
+        ;; cycles 1 again
 
 (defn ret-i [ctx]
   (-> ctx

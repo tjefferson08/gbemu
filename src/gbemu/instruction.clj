@@ -266,7 +266,7 @@
    0xF5 {:type :push, :mode :implied, :reg1 :af}
    0xF6 {:type :or, :mode :register_d8, :reg1 :a}
    0xF7 {:type :rst, :mode :implied, :param 0x30}
-   0xF8 {:type :load, :mode :register_sp-plus-r8, :reg1 :hl}
+   0xF8 {:type :load, :mode :register_sp-plus-r8, :reg1 :hl, :reg2 :sp}
    0xF9 {:type :load, :mode :register_register, :reg1 :sp, :reg2 :hl}
    0xFA {:type :load, :mode :register_a16, :reg1 :a}
    0xFB {:type :ei, :mode :implied}

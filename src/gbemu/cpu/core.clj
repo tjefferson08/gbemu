@@ -33,12 +33,12 @@
 
 (defn fetch-instruction [ctx]
   (let [pc         (r/read-reg ctx :pc)
-        [op, ctx'] (bus/read ctx pc 4)]
+        [op, ctx'] (bus/read ctx pc)]
         ;; _ (println "fetching inst " pc (i/for-opcode op))]
-    (-> ctx
+    (-> ctx'
         (update :cpu assoc :cur-opcode op
                            :cur-instr (i/for-opcode op))
-        (assoc-in [:cpu :registers :pc] (inc pc)))))
+        (r/write-reg :pc (inc pc)))))
 
 (defn- step-halted [ctx]
   (let [ctx' (clock/tick ctx 4)]
@@ -66,25 +66,14 @@
 
 (defn- debug-log [ctx]
   (let [pc (r/read-reg ctx :pc)]
-    (format "%04X - %8d: %80s (%02X %02X %02X) A:%02X F:%s%s%s%s BC:%02X%02X DE:%02X%02X HL:%02X%02X SP:%04X"
+    (format "PC:%04X IF:%02X IE:%02X DIV:%04X TIMA:%02X TMA:%02X TAC:%02X"
              pc
-             (get-in ctx [:emu :ticks])
-             (get-in ctx [:cpu :cur-instr])
-             (get-in ctx [:cpu :cur-opcode])
-             (bus/read! ctx (+ pc 1))
-             (bus/read! ctx (+ pc 2))
-             (r/read-reg ctx :a)
-             (if (flags/flag-set? ctx :z) "Z" "-")
-             (if (flags/flag-set? ctx :n) "N" "-")
-             (if (flags/flag-set? ctx :h) "H" "-")
-             (if (flags/flag-set? ctx :c) "C" "-")
-             (r/read-reg ctx :b)
-             (r/read-reg ctx :c)
-             (r/read-reg ctx :d)
-             (r/read-reg ctx :e)
-             (r/read-reg ctx :h)
-             (r/read-reg ctx :l)
-             (r/read-reg ctx :sp))))
+             (r/read-interrupt-flags ctx)
+             (r/read-ie-reg ctx)
+             (get-in ctx [:timer :div])
+             (get-in ctx [:timer :tima])
+             (get-in ctx [:timer :tma])
+             (get-in ctx [:timer :tac]))))
 
 (defn- step-running [ctx]
   (let [ctx' (fetch-instruction ctx)

@@ -53,7 +53,7 @@
 (defn- d8-fetch [ctx]
   (let [pc (r/read-reg ctx :pc)
         pc' (inc pc)
-        [d8 ctx'] (bus/read ctx pc 4)]
+        [d8 ctx'] (bus/read ctx pc)]
     (-> ctx' (update :cpu merge defaults {:fetched-data d8})
              (r/write-reg :pc pc'))))
 

@@ -1,7 +1,8 @@
 (ns gbemu.execution.cb
   (:require [gbemu.cpu.registers :as r]
             [gbemu.bus :as bus]
-            [gbemu.execution.flags :as flags]))
+            [gbemu.execution.flags :as flags]
+            [gbemu.clock :as clock]))
 
 (defn- read-for [ctx op]
   (let [low-3-bits (bit-and 2r0111 op)]
@@ -111,7 +112,7 @@
         [in ctx'] (read-for ctx op)
         handler    (if (< op 0x40) (rotate-shift-op-for op) (bit-op-for op))
         ctx'' (handler ctx' in)]
-    ctx''))
+    (clock/tick ctx'' 4)))
 
 (comment
   (format "%02X" (bit-and 2r111 (bit-shift-right 0xB0 3)))

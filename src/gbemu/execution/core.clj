@@ -10,7 +10,8 @@
             [gbemu.execution.logic :as logic]
             [gbemu.execution.cb :as cb]
             [gbemu.execution.flags :as flags]
-            [gbemu.bytes :as bytes]))
+            [gbemu.bytes :as bytes]
+            [gbemu.clock :as clock]))
 
 (defn- none [ctx]
   (throw (Exception. "No instruction! Fail")))
@@ -32,8 +33,9 @@
         reg1 (:reg1 cur-instr)
         ;; _ (println "ctx before push" (:cpu ctx))
         ctx' (stack/push-16 ctx (r/read-reg ctx reg1))]
-        ;; _ (println "ctx after push" (:cpu ctx'))]
-    ctx'))
+
+    ;; extra tick for 16-bit register op
+    (clock/tick ctx' 4)))
 
 (defn- stop [ctx]
   (assoc-in ctx [:cpu :stopped] true))

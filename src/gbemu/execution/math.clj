@@ -2,26 +2,28 @@
   (:require [gbemu.cpu.registers :as r]
             [gbemu.bus :as bus]
             [gbemu.bytes :as bytes]
-            [gbemu.execution.flags :as flags]))
+            [gbemu.execution.flags :as flags]
+            [gbemu.clock :as clock]))
 
 (defn increment [ctx]
   (let [cur-instr                    (get-in ctx [:cpu :cur-instr])
         cur-opcode                   (get-in ctx [:cpu :cur-opcode])
         {:keys [reg1 mode] :as inst} cur-instr
-        inc-mem (fn [ctx]
-                  (let [addr        (r/read-reg ctx reg1)
-                        [v ctx']    (bus/read ctx addr)
-                        v'          (bytes/to-unsigned (inc v))]
-                   [v' (bus/write-bus ctx' addr v')]))
-        inc-reg (fn [ctx]
-                   (let [v    (inc (r/read-reg ctx reg1))
-                         ctx' (r/write-reg ctx reg1 v)
-                         v'   (r/read-reg ctx' reg1)]
-                     [v' ctx']))
-        [v ctx'] (if (= mode :memloc) (inc-mem ctx) (inc-reg ctx))]
+        inc-mem  (fn [ctx]
+                   (let [addr        (r/read-reg ctx reg1)
+                         [v ctx']    (bus/read ctx addr)
+                         v'          (bytes/to-unsigned (inc v))]
+                    [v' (bus/write-bus ctx' addr v')]))
+        inc-reg  (fn [ctx]
+                    (let [v    (inc (r/read-reg ctx reg1))
+                          ctx' (r/write-reg ctx reg1 v)
+                          v'   (r/read-reg ctx' reg1)]
+                      [v' ctx']))
+        [v ctx'] (if (= mode :memloc) (inc-mem ctx) (inc-reg ctx))
+        ctx''    (if (r/sixteen-bit? reg1) (clock/tick ctx' 4) ctx')]
     (if (= 0x03 (bit-and 0x03 cur-opcode))
-      ctx'
-      (flags/set-flags ctx' {:z (zero? v), :n false, :h (zero? (bit-and 0x0F v))}))))
+      ctx''
+      (flags/set-flags ctx'' {:z (zero? v), :n false, :h (zero? (bit-and 0x0F v))}))))
 
 (defn decrement [ctx]
   (let [cur-instr                    (get-in ctx [:cpu :cur-instr])
@@ -37,10 +39,11 @@
                          ctx' (r/write-reg ctx reg1 v)
                          v'   (r/read-reg ctx' reg1)]
                      [v' ctx']))
-        [v ctx'] (if (= mode :memloc) (dec-mem ctx) (dec-reg ctx))]
+        [v ctx'] (if (= mode :memloc) (dec-mem ctx) (dec-reg ctx))
+        ctx''    (if (r/sixteen-bit? reg1) (clock/tick ctx' 4) ctx')]
     (if (= 0x0B (bit-and 0x0B cur-opcode))
-      ctx'
-      (flags/set-flags ctx' {:z (zero? v), :n true, :h (= 0x0F (bit-and 0x0F v))}))))
+      ctx''
+      (flags/set-flags ctx'' {:z (zero? v), :n true, :h (= 0x0F (bit-and 0x0F v))}))))
 
 
 ;; 16 bit reg but 8 bit operands
@@ -62,7 +65,6 @@
 (defn- add-16-bit [ctx]
   (let [{:keys [cur-instr fetched-data]} (ctx :cpu)
         {:keys [reg1] :as inst}          cur-instr]
-    ;; TODO add 1 cycle for 16 bit reg1
     (if (= :sp reg1)
       (add-sp ctx)
       (let [operand                          (r/read-reg ctx reg1)
@@ -93,7 +95,7 @@
 (defn add [ctx]
   (let [reg1 (get-in ctx [:cpu :cur-instr :reg1])]
     (if (r/sixteen-bit? reg1)
-      (add-16-bit ctx)
+      (clock/tick (add-16-bit ctx) 4)
       (add-8-bit ctx))))
 
 (defn adc [{{:keys [cur-instr fetched-data]} :cpu :as ctx}]
