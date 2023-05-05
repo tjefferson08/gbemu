@@ -26,7 +26,7 @@
         new-rom-bytes (byte-array (build-rom-vec instructions regions))
         _            (bytes/spit-bytes rom-file new-rom-bytes)
         ctx          (sut/init rom-file)
-        ctx'         (assoc ctx :log *out* :timer (timer/init))]
+        ctx'         (assoc ctx :log print :timer (timer/init))]
      (cpu/run ctx')))
 
 (deftest ^:integration stack-operations
@@ -99,6 +99,18 @@
     (is (= 0x0010 (r/read-reg ctx :hl)))
     (is (= 0x000F (r/read-reg ctx :sp)))
     (is (= {:z false, :n false, :h true, :c false} (flags/all ctx)))))
+
+(deftest ^:integration load-with-c-as-partial-address
+  (let [ctx (ctx-with {:instructions [0x3E 0xAB      ;; LD A, $99
+                                      0x0E 0x99      ;; LD C, $04
+                                      0xE2
+                                      0x3E 0x00      ;; LD A, $00
+                                      0xF2
+                                      0x10]})]
+    (is (= 0xAB (r/read-reg ctx :a)))
+    (is (= 0xAB (bus/read! ctx 0xFF99)))
+    (is (= 0x99 (r/read-reg ctx :c)))))
+
 
 (deftest ^:integration loadh
   (let [loadh-1 (ctx-with {:instructions [0x3E 0x01      ;; LD A, $01

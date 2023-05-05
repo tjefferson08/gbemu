@@ -78,7 +78,7 @@
 (defn- step-running [ctx]
   (let [ctx' (fetch-instruction ctx)
         ctx'' (fetch/fetch-data ctx')
-        _ (.write (:log ctx'') (str (doctor-log ctx) "\n"))
+        _ ((:log ctx'') (str (doctor-log ctx) "\n"))
         ctx''' (debug/update ctx'')
         _ (debug/print ctx''')
         ctx'''' (exec/execute ctx''')]
@@ -115,8 +115,7 @@
 (defn run [ctx]
   (loop [ctx' ctx]
     (if (get-in ctx' [:cpu :stopped])
-      (do (.flush (:log ctx'))
-        ctx')
+      ctx'
       (recur (step ctx')))))
 
 (comment

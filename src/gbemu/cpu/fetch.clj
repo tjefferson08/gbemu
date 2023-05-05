@@ -40,13 +40,13 @@
 
 (defmethod fetch-data* :memloc_register [ctx]
   (let [[addr, data] (r/read-regs ctx (reg1 ctx) (reg2 ctx))
-        addr'        (if (= :c (reg1 ctx)) (bit-or 0xFF addr) addr)
+        addr'        (if (= :c (reg1 ctx)) (bit-or 0xFF00 addr) addr)
         changes      {:mem_dest addr', :dest_is_mem true, :fetched-data data}]
     (update ctx :cpu merge defaults changes)))
 
 (defmethod fetch-data* :register_memloc [ctx]
   (let [addr         (read-reg2 ctx)
-        addr'        (if (= :c (reg2 ctx)) (bit-or 0xFF addr) addr)
+        addr'        (if (= :c (reg2 ctx)) (bit-or 0xFF00 addr) addr)
         [data ctx']  (bus/read ctx addr' 4)]
     (update ctx' :cpu merge defaults {:fetched-data data})))
 

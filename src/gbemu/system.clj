@@ -14,8 +14,7 @@
 
 (def cli-options
   [["-r" "--rom ROM" "ROM path"]
-   ["-d" "--debug-log DEBUG_LOG" "DEBUG_LOG filepath"
-    :default *out*]
+   ["-d" "--debug-log DEBUG_LOG" "DEBUG_LOG filepath"]
    [nil "--tick-limit TICK_LIMIT" "exit after excuting specified number of ticks"
     :default nil
     :parse-fn #(Integer/parseInt %)]
@@ -36,5 +35,8 @@
         {:keys [headless rom tick-limit debug-log]} (:options opts)
         ctx (-> (init rom)
                 (update :emu assoc :headless headless :tick-limit tick-limit))]
-    (with-open [o (jio/writer debug-log)]
-      (emu/run (assoc ctx :log o)))))
+    (if debug-log
+      (with-open [o (jio/writer debug-log)]
+        (emu/run (assoc ctx :log (fn log [s] (.write o s))))
+        (.flush o))
+      (emu/run (assoc ctx :log (fn noop [s]))))))
