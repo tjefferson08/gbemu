@@ -5,7 +5,8 @@
             [gbemu.bytes :as b]
             [gbemu.io :as io]
             [gbemu.log :as log]
-            [gbemu.clock :as clock]))
+            [gbemu.clock :as clock]
+            [gbemu.ppu :as ppu]))
 
 (defn- read* [ctx address]
   (b/to-unsigned
@@ -17,7 +18,7 @@
 
         ;; 0x9800 - 0x9BFF : BG Map 1
         ;; 0x9C00 - 0x9FFF : BG Map 2
-        (> 0xA000 address) (or (log/stderr "Not implemented: BG Map") 0)
+        (> 0xA000 address) (ppu/read-vram ctx address)
 
         ;; 0xA000 - 0xBFFF : Cartridge RAM
         (> 0xC000 address) (cart/read ctx address)
@@ -30,7 +31,7 @@
         (> 0xFE00 address) (or (log/stderr "Echo RAM: Not implemented TODO") 0)
 
         ;; 0xFE00 - 0xFE9F : Object Attribute Memory
-        (> 0xFEA0 address) (or (log/stderr "OAM: Not implemented TODO") 0)
+        (> 0xFEA0 address) (ppu/read-oam ctx address)
 
         ;; 0xFEA0 - 0xFEFF : Reserved - Unusable
         (> 0xFF00 address) (throw (Exception. "Reserved - Unusable"))
@@ -54,7 +55,7 @@
 
       ;; 0x9800 - 0x9BFF : BG Map 1
       ;; 0x9C00 - 0x9FFF : BG Map 2
-      (> 0xA000 address) (or (log/stderr "Not implemented: BG Map") ctx)
+      (> 0xA000 address) (ppu/write-vram ctx address value)
 
       ;; 0xA000 - 0xBFFF : Cartridge RAM
       (> 0xC000 address) (cart/write ctx address value)
@@ -67,7 +68,7 @@
       (> 0xFE00 address) (or (log/stderr "Echo RAM: Not implemented TODO") ctx)
 
       ;; 0xFE00 - 0xFE9F : Object Attribute Memory
-      (> 0xFEA0 address) (or (log/stderr "OAM: Not implemented TODO") ctx)
+      (> 0xFEA0 address) (ppu/write-oam ctx address value)
 
       ;; 0xFEA0 - 0xFEFF : Reserved - Unusable
       (> 0xFF00 address) (throw (Exception. "Reserved - Unusable"))
