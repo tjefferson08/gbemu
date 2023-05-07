@@ -1,6 +1,7 @@
 (ns gbemu.emu
   (:require [gbemu.cartridge :as cart]
-            [gbemu.cpu.core :as cpu]))
+            [gbemu.cpu.core :as cpu]
+            [gbemu.state :refer [*ctx]]))
 
 (def TICK_LIMIT 100100)
 
@@ -33,6 +34,7 @@
              ;;               (persistent! (transient step-result))
              ;;               step-result)]
              ;; _ (println "after step" (:cpu step-result))]
+          (swap! *ctx step-result)
           (recur (update-in step-result [:emu :ticks] inc))))
      ctx)))
 
