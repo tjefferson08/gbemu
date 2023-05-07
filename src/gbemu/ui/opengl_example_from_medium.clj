@@ -3,7 +3,8 @@
   (:import (org.lwjgl Version)
            (org.lwjgl.glfw GLFWErrorCallback GLFW GLFWKeyCallbackI Callbacks)
            (org.lwjgl.opengl GL GL33)
-           (org.lwjgl.system MemoryStack)))
+           (org.lwjgl.system MemoryStack))
+  (:require [gbemu.log :as log]))
 
 ; embedded nREPL
 (require '[nrepl.server :refer [start-server stop-server]])
@@ -19,28 +20,31 @@
 (def SCREEN_HEIGHT 768)
 (def SCREEN_X 0)
 (def SCREEN_Y 0)
+(def SCALE 4)
 
+(defn run
+  ([] (run nil))
+  ([wait-ms]
 
-(def DBG_SCALE 4)
+   (println (str "Hello LWJGL " (Version/getVersion) "!"))
+
+   (init)
+   (def window (init-window SCREEN_WIDTH SCREEN_HEIGHT SCREEN_X SCREEN_Y))
+   (def dbg-window (init-window (* 16 8 SCALE) (* 32 8 SCALE) (+ SCREEN_X SCREEN_WIDTH 10) SCREEN_Y))             ; Center the window
+   (main-loop wait-ms)
+
+   ; Free the window callbacks and destroy the window
+   (Callbacks/glfwFreeCallbacks window)
+   (GLFW/glfwDestroyWindow window)
+
+   ; Terminate GLFW and free the error callback
+   (GLFW/glfwTerminate)
+   (-> (GLFW/glfwSetErrorCallback nil) (.free))))
 
 (defn -main [& args]
-  (println (str "Hello LWJGL " (Version/getVersion) "!"))
-
-  (init)
-  (def window (init-window SCREEN_WIDTH SCREEN_HEIGHT SCREEN_X SCREEN_Y))
-  (def dbg-window (init-window (* 16 8 DBG_SCALE) (* 32 8 DBG_SCALE) (+ SCREEN_X SCREEN_WIDTH 10) SCREEN_Y))             ; Center the window
-  (main-loop)
-
-  ; Free the window callbacks and destroy the window
-  (Callbacks/glfwFreeCallbacks window)
-  (GLFW/glfwDestroyWindow window)
-
-  ; Terminate GLFW and free the error callback
-  (GLFW/glfwTerminate)
-  (-> (GLFW/glfwSetErrorCallback nil) (.free)))
+  (apply run args))
 
 (defn init []
-
   ; Setup an error callback. The default implementation
   ; will print the error message in System.err.
   (-> (GLFWErrorCallback/createPrint System/err) (.set))
@@ -55,47 +59,46 @@
   (GLFW/glfwWindowHint GLFW/GLFW_RESIZABLE GLFW/GLFW_TRUE))  ; the window will be resizable
 
 (defn init-window
-  ([] (init-window SCREEN_HEIGHT SCREEN_WIDTH nil nil))
-  ([width height xpos ypos]
-    ; Create the window
-   (let [win (GLFW/glfwCreateWindow width height "Hello, World!" 0 0)]
-     (when (zero? win)
-       (throw (RuntimeException. "Failed to create the GLFW window")))
+ ([] (init-window SCREEN_HEIGHT SCREEN_WIDTH nil nil))
+ ([width height xpos ypos]
+   ; Create the window
+  (let [win (GLFW/glfwCreateWindow width height "Hello, World!" 0 0)]
+    (when (zero? win)
+      (throw (RuntimeException. "Failed to create the GLFW window")))
 
-     ; Setup a key callback. It will be called every time a key is pressed, repeated or released.
-     (GLFW/glfwSetKeyCallback win (reify GLFWKeyCallbackI
-                                      (invoke [this wndow key scancode action mods]
-                                        (when (and (= key GLFW/GLFW_KEY_ESCAPE)
-                                                (= action GLFW/GLFW_RELEASE))
-                                            ; We will detect this in the rendering loop
-                                            (GLFW/glfwSetWindowShouldClose wndow true)))))
+    ; Setup a key callback. It will be called every time a key is pressed, repeated or released.
+    (GLFW/glfwSetKeyCallback win (reify GLFWKeyCallbackI
+                                     (invoke [this wndow key scancode action mods]
+                                       (when (and (= key GLFW/GLFW_KEY_ESCAPE)
+                                               (= action GLFW/GLFW_RELEASE))
+                                           ; We will detect this in the rendering loop
+                                           (GLFW/glfwSetWindowShouldClose wndow true)))))
 
-     ; Get the thread stack and push a new frame
-     (let [stack (MemoryStack/stackPush)
-             p-width (.mallocInt stack 1)
-             p-height (.mallocInt stack 1)]
+    ; Get the thread stack and push a new frame
+    (let [stack (MemoryStack/stackPush)
+            p-width (.mallocInt stack 1)
+            p-height (.mallocInt stack 1)]
 
-         ; Get the window size passed to glfwCreateWindow
-         (GLFW/glfwGetWindowSize ^long win p-width p-height)
-         (let [vidmode (-> (GLFW/glfwGetPrimaryMonitor)          ; Get the resolution of the primary monitor
-                           (GLFW/glfwGetVideoMode))
-               xpos' (or xpos (/ (- (.width vidmode)
-                                  (.get p-width 0))
-                               2))
-               ypos' (or ypos (/ (- (.height vidmode)
-                                   (.get p-height 0))
-                                2))]
-           (GLFW/glfwSetWindowPos win xpos' ypos')             ; Center the window
-           (MemoryStack/stackPop)))                                  ; pop stack frame
+        ; Get the window size passed to glfwCreateWindow
+        (GLFW/glfwGetWindowSize ^long win p-width p-height)
+        (let [vidmode (-> (GLFW/glfwGetPrimaryMonitor)          ; Get the resolution of the primary monitor
+                          (GLFW/glfwGetVideoMode))
+              xpos' (or xpos (/ (- (.width vidmode)
+                                 (.get p-width 0))
+                              2))
+              ypos' (or ypos (/ (- (.height vidmode)
+                                  (.get p-height 0))
+                               2))]
+          (GLFW/glfwSetWindowPos win xpos' ypos')             ; Center the window
+          (MemoryStack/stackPop)))                                  ; pop stack frame
 
 
-     (GLFW/glfwMakeContextCurrent win)                      ; Make the OpenGL context current
-     (GLFW/glfwSwapInterval 1)                                 ; Enable v-sync
-     (GLFW/glfwShowWindow win)                             ; Make the window visible
-    win)))
+    (GLFW/glfwMakeContextCurrent win)                      ; Make the OpenGL context current
+    (GLFW/glfwSwapInterval 1)                                 ; Enable v-sync
+    (GLFW/glfwShowWindow win)                             ; Make the window visible
+   win)))
 
-(defn main-loop []
-
+(defn main-loop [wait]
   ; This line is critical for LWJGL's interoperation with GLFW's
   ; OpenGL context, or any context that is managed externally.
   ; LWJGL detects the context that is current in the current thread,
@@ -109,12 +112,33 @@
   ; Run the rendering loop until the user has attempted to close
   ; the window or has pressed the ESCAPE key.
   (while (not (GLFW/glfwWindowShouldClose window))
+    (and wait (Thread/sleep wait))
     (draw window)
     (draw-dbg dbg-window)))
 
+(defn draw-tile [{:keys [window tile-num x y]}])
+
 (defn draw-dbg [win]
   (GLFW/glfwMakeContextCurrent win)                      ; Make the OpenGL context current
-  (GL33/glClearColor 0.0 1.0 0.0 0.0)
+  (GL33/glClearColor 0.5, 0.5, 0.5, 0)
+
+    ;; u16 addr = 0x8000;
+
+    ;; //384 tiles, 24 x 16
+    ;; for (int y=0; y<24; y++) {
+    ;;     for (int x=0; x<16; x++) {
+    ;;         display_tile(debugScreen, addr, tileNum, xDraw + (x * scale), yDraw + (y * scale));
+    ;;         xDraw += (8 * scale);
+    ;;         tileNum++;
+    ;;     }
+
+    ;;     yDraw += (8 * scale);
+    ;;     xDraw = 0;
+    ;; }
+  (for [x (range 1)
+        y (range 1)]
+    (draw-tile {:window win, :tile-num (+ x (* 16 y)), :x (* x SCALE), :y (* y SCALE)}))
+
 
   ; clear the framebuffer
   (GL33/glClear (bit-or GL33/GL_COLOR_BUFFER_BIT GL33/GL_DEPTH_BUFFER_BIT))
@@ -153,11 +177,13 @@
   (GLFW/glfwPollEvents))
 
 (comment
-   (GLFW/glfwSetWindowSize dbg-window (* 16 8 DBG_SCALE) (* 32 8 DBG_SCALE))             ; Center the window
+   (GLFW/glfwSetWindowSize dbg-window (* 16 8 SCALE) (* 32 8 SCALE))             ; Center the window
 
    (GLFW/glfwSetWindowPos window 300 200)             ; Center the window
 
    window
-
+   (for [x (range 4)
+         y (range 5)]
+     [x y (+ x (* 4 y))])
 
  ,,,)

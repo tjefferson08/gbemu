@@ -1,9 +1,9 @@
 (ns gbemu.emu
   (:require [gbemu.cartridge :as cart]
             [gbemu.cpu.core :as cpu]
-            [gbemu.state :refer [*ctx]]))
-
-(def TICK_LIMIT 100100)
+            [gbemu.state :refer [*ctx]]
+            [gbemu.ui.opengl-example-from-medium :as ui]
+            [gbemu.log :as log]))
 
 (defn init []
   {:paused false, :running true, :ticks 0, :headless false})
@@ -14,13 +14,14 @@
 ;; - Address Bus
 ;; - PPU
 ;; - Timer
-(defn run
+(defn run*
   ([{{:keys [tick-limit headless ticks]} :emu :as ctx}]
+
    ;; (println (str "Tick " (:ticks (:emu ctx))))
   ;; TODO initialize graphics
   ;; Initialize true-type-fonts (TTF)
   ;; initialize CPU
-   (if (and tick-limit (< tick-limit ticks))
+   (when (and tick-limit (< tick-limit ticks))
      (throw (Exception. "TICK LIMIT EXCEEDED")))
 
   ;; rework to be clojureish
@@ -38,5 +39,17 @@
           (recur (update-in step-result [:emu :ticks] inc))))
      ctx)))
 
+(defn run [{{:keys [headless]} :emu :as ctx}]
+  (let [cpu-thread (future (run* ctx))]
+    (if headless
+      @cpu-thread
+      (ui/run 1000))))
+
 (defn delay [ms])
   ;; TODO sleep ms
+
+(comment
+  @f
+
+
+ ,,,)

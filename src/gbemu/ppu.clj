@@ -31,7 +31,7 @@
 
 (defn write-oam [ctx addr value]
   (let [address (if (< 0xFE00 addr) (- addr 0xFE00) addr)]
-    (update-in ctx [:ppu :oam-ram address] value)))
+    (assoc-in ctx [:ppu :oam-ram address] value)))
 
 (defn read-vram [ctx addr]
   (let [address (- addr 0x8000)]
@@ -39,4 +39,4 @@
 
 (defn write-vram [ctx addr value]
   (let [address (- addr 0x8000)]
-    (update-in ctx [:ppu :vram address])))
+    (assoc-in ctx [:ppu :vram address] value)))
