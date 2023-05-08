@@ -31,12 +31,13 @@
 
 (defn write-oam [ctx addr value]
   (let [address (if (< 0xFE00 addr) (- addr 0xFE00) addr)]
-    (assoc-in ctx [:ppu :oam-ram address] value)))
+    (assoc-in ctx [:ppu :oam-ram address] (unchecked-byte value))))
 
 (defn read-vram [ctx addr]
   (let [address (- addr 0x8000)]
     (get-in ctx [:ppu :vram address])))
 
 (defn write-vram [ctx addr value]
+  (println "writing vram " addr ", " value)
   (let [address (- addr 0x8000)]
-    (assoc-in ctx [:ppu :vram address] value)))
+    (assoc-in ctx [:ppu :vram address] (unchecked-byte value))))

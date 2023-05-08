@@ -35,7 +35,7 @@
              ;;               (persistent! (transient step-result))
              ;;               step-result)]
              ;; _ (println "after step" (:cpu step-result))]
-          (swap! *ctx step-result)
+          (reset! *ctx step-result)
           (recur (update-in step-result [:emu :ticks] inc))))
      ctx)))
 

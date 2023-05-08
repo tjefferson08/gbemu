@@ -4,7 +4,9 @@
            (org.lwjgl.glfw GLFWErrorCallback GLFW GLFWKeyCallbackI Callbacks)
            (org.lwjgl.opengl GL GL33)
            (org.lwjgl.system MemoryStack))
-  (:require [gbemu.log :as log]))
+  (:require [gbemu.log :as log]
+            [gbemu.state :refer [*ctx]]
+            [gbemu.bus :as bus]))
 
 ; embedded nREPL
 (require '[nrepl.server :refer [start-server stop-server]])
@@ -116,11 +118,49 @@
     (draw window)
     (draw-dbg dbg-window)))
 
-(defn draw-tile [{:keys [window tile-num x y]}])
+
+
+    ;; for (int tileY=0; tileY<16; tileY += 2) {
+    ;;     u8 b1 = bus_read(startLocation + (tileNum * 16) + tileY);
+    ;;     u8 b2 = bus_read(startLocation + (tileNum * 16) + tileY + 1);
+
+    ;;     for (int bit=7; bit >= 0; bit--) {
+    ;;         u8 hi = !!(b1 & (1 << bit)) << 1;
+    ;;         u8 lo = !!(b2 & (1 << bit));
+
+    ;;         u8 color = hi | lo;
+
+    ;;         rc.x = x + ((7 - bit) * scale);
+    ;;         rc.y = y + (tileY / 2 * scale);
+    ;;         rc.w = scale;
+    ;;         rc.h = scale;
+
+    ;;         SDL_FillRect(surface, &rc, tile_colors[color]);
+    ;;     }
+    ;; }
+    ;; static unsigned long tile_colors[4] = {0xFFFFFFFF, 0xFFAAAAAA, 0xFF555555, 0xFF000000};
+(def TILE_COLORS [[1.0 1.0 1.0 1.0] [1.0 0.625 0.625 0.625] [1.0 0.3125 0.2135 0.3125] [1.0 0 0 0]])
+
+(defn tile-px [ctx {:keys [tile-num x y addr scale]}]
+  (let [tile-line (fn [b1 b2 tile-y]
+                     (map (fn [bit]
+                            (let [hi    (if (bit-test b2 bit) 2r10 2r00)
+                                  lo    (if (bit-test b1 bit) 2r01 2r00)
+                                  color (bit-or hi lo)
+                                  x     (+ x (* (- 7 bit) scale))
+                                  y     (* tile-y scale)
+                                  _     (println (format (str "bytes 1:%02X 2:%02X color: " color " hi: " hi " lo: " lo " x, y: " x "," y) b1 b2))]
+                               {:color color, :x x, :y y}))
+                          (range 0 8)))]
+    (mapcat (fn [line] (let [tile-y (* 2 line)
+                             b1     (bus/read! ctx (+ addr (* tile-num 16) tile-y))
+                             b2     (bus/read! ctx (+ addr (* tile-num 16) (inc tile-y)))]
+                          (tile-line b1 b2 line)))
+         (range 0 8))))
 
 (defn draw-dbg [win]
   (GLFW/glfwMakeContextCurrent win)                      ; Make the OpenGL context current
-  (GL33/glClearColor 0.5, 0.5, 0.5, 0)
+  (GL33/glClearColor 0.5 0.5 0.5 0)
 
     ;; u16 addr = 0x8000;
 
@@ -135,9 +175,10 @@
     ;;     yDraw += (8 * scale);
     ;;     xDraw = 0;
     ;; }
-  (for [x (range 1)
-        y (range 1)]
-    (draw-tile {:window win, :tile-num (+ x (* 16 y)), :x (* x SCALE), :y (* y SCALE)}))
+  (let [tiles (for [x (range 8)
+                    y (range 12)]
+                (tile-px @*ctx {:scale SCALE, :addr 0x8000, :tile-num (+ x (* 16 y)), :x (* x SCALE), :y (* y SCALE)}))]
+    (doall (take 2 tiles)))
 
 
   ; clear the framebuffer
@@ -162,6 +203,8 @@
 
   ; clear the framebuffer
   (GL33/glClear (bit-or GL33/GL_COLOR_BUFFER_BIT GL33/GL_DEPTH_BUFFER_BIT))
+
+  (println "hi from draw")
 ;; void glDrawPixels(                                  	GLsizei width,
 ;;                                    	GLsizei height,
 ;;                                    	GLenum format,
@@ -182,8 +225,8 @@
    (GLFW/glfwSetWindowPos window 300 200)             ; Center the window
 
    window
-   (for [x (range 4)
-         y (range 5)]
+   (for [x (range 1)
+         y (range 1)]
      [x y (+ x (* 4 y))])
 
  ,,,)

@@ -8,7 +8,8 @@
             [gbemu.io :as io]
             [clojure.java.io :as jio]
             [gbemu.debug :as debug]
-            [gbemu.timer :as timer]))
+            [gbemu.timer :as timer]
+            [gbemu.ppu :as ppu]))
 
 (set! *warn-on-reflection* true)
 
@@ -27,6 +28,7 @@
   :io (io/init)
   :debug (debug/init)
   :cpu (cpu/init)
+  :ppu (ppu/init)
   :timer (timer/init)
   :ram (ram/init)})
 
