@@ -1,0 +1,94 @@
+#!/bin/bash
+
+mkdir -p tmp/log
+
+# unit tests
+echo "Running unit test suite..."
+clj -X:test >tmp/log/unit.stdout.log 2>tmp/log/unit.stderr.log
+if (( $? )); then
+    echo "Unit tests failed"
+    exit 1
+fi
+
+
+echo "Running test rom 01-special.gb"
+time clj -M:main --rom resources/roms/01-special.gb --headless --tick-limit 1257000 2> serial.log
+tail serial.log | grep -q "Passed"
+
+if (( $? )); then
+    echo "01 failed"
+    exit 1
+fi
+
+time clj -M:main --rom resources/roms/02-interrupts.gb --headless --tick-limit 326000 2> serial.log
+tail serial.log | grep -q "Passed"
+if (( $? )); then
+    echo "02 failed"
+    exit 1
+fi
+
+time clj -M:main --rom "resources/roms/03-op sp,hl.gb" --headless --tick-limit 1067000 2> serial.log
+tail serial.log | grep -q "Passed"
+if (( $? )); then
+    echo "03 failed"
+    exit 1
+fi
+
+time clj -M:main --rom "resources/roms/04-op r,imm.gb" --headless --tick-limit 1261000 2> serial.log
+tail serial.log | grep -q "Passed"
+if (( $? )); then
+    echo "04 failed"
+    exit 1
+fi
+
+time clj -M:main --rom "resources/roms/05-op rp.gb" --headless --tick-limit 1762000 2> serial.log
+tail serial.log | grep -q "Passed"
+if (( $? )); then
+    echo "05 failed"
+    exit 1
+fi
+
+time clj -M:main --rom "resources/roms/06-ld r,r.gb" --headless --tick-limit 242000 2> serial.log
+tail serial.log | grep -q "Passed"
+if (( $? )); then
+    echo "06 failed"
+    exit 1
+fi
+
+time clj -M:main --rom "resources/roms/07-jr,jp,call,ret,rst.gb" --headless --tick-limit 588000 2> serial.log
+tail serial.log | grep -q "Passed"
+if (( $? )); then
+    echo "07 failed"
+    exit 1
+fi
+
+time clj -M:main --rom "resources/roms/08-misc instrs.gb" --headless --tick-limit  222000 2> serial.log
+tail serial.log | grep -q "Passed"
+if (( $? )); then
+    echo "08 failed"
+    exit 1
+fi
+
+time clj -M:main --rom "resources/roms/09-op r,r.gb" --headless --tick-limit 4419000 2> serial.log
+tail serial.log | grep -q "Passed"
+if (( $? )); then
+    echo "09 failed"
+    exit 1
+fi
+
+time clj -M:main --rom "resources/roms/10-bit ops.gb" --headless --tick-limit 6713000 2> serial.log
+tail serial.log | grep -q "Passed"
+if (( $? )); then
+    echo "10 failed"
+    exit 1
+fi
+
+time clj -M:main --rom "resources/roms/11-op a,(hl).gb" --headless --tick-limit 7428000 2> serial.log
+tail serial.log | grep -q "Passed"
+if (( $? )); then
+    echo "11 failed"
+    exit 1
+fi
+
+echo "ALL PASSING!"
+# TODO run doctor too?
