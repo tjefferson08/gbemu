@@ -2,7 +2,7 @@
   (:require [gbemu.cartridge :as cart]
             [gbemu.cpu.core :as cpu]
             [gbemu.state :refer [*ctx]]
-            [gbemu.ui.opengl-example-from-medium :as ui]
+            [gbemu.ui.graphics-2d-example :as ui]
             [gbemu.log :as log]))
 
 (defn init []
@@ -43,7 +43,7 @@
   (let [cpu-thread (future (run* ctx))]
     (if headless
       @cpu-thread
-      (ui/run 1000))))
+      (ui/run *ctx 1000))))
 
 (defn delay [ms])
   ;; TODO sleep ms

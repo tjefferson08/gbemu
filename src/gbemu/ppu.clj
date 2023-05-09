@@ -38,6 +38,6 @@
     (get-in ctx [:ppu :vram address])))
 
 (defn write-vram [ctx addr value]
-  (println "writing vram " addr ", " value)
+  ;; (println "writing vram " addr ", " value)
   (let [address (- addr 0x8000)]
     (assoc-in ctx [:ppu :vram address] (unchecked-byte value))))

@@ -80,7 +80,7 @@
         ctx'' (fetch/fetch-data ctx')
         _ ((:log ctx'') (str (doctor-log ctx) "\n"))
         ctx''' (debug/update ctx'')
-        _ (debug/print ctx''')
+        ;; _ (debug/print ctx''')
         ctx'''' (exec/execute ctx''')]
     ctx''''))
 
