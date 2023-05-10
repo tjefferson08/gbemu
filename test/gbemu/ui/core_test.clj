@@ -2,7 +2,7 @@
   (:require [gbemu.ui.core :as sut]
             [clojure.test :refer :all]
             [gbemu.ppu :as ppu]
-            [gbemu.bus :as bus]
+            [gbemu.bus.logical :as bus]
             [clojure.set :as set]))
 
 (deftest ppu-write

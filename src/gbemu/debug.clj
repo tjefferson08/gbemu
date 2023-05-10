@@ -1,5 +1,5 @@
 (ns gbemu.debug
-  (:require [gbemu.bus :as bus]
+  (:require [gbemu.bus.logical :as bus]
             [gbemu.log :as log]))
 
 (defn init [] {:msg []})
@@ -8,7 +8,7 @@
   (if (= 0x81 (bus/read! ctx 0xFF02))
     (let [c (bus/read! ctx 0xFF01)]
       (-> ctx (update-in [:debug :msg] conj c)
-              (bus/write-bus 0xFF02 0)))
+              (bus/write! 0xFF02 0)))
     ctx))
 
 (defn print [ctx]

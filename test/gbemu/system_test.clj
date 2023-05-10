@@ -3,7 +3,7 @@
             [clojure.test :refer :all]
             [gbemu.bytes :as bytes]
             [gbemu.cpu.registers :as r]
-            [gbemu.bus :as bus]
+            [gbemu.bus.logical :as bus]
             [gbemu.execution.flags :as flags]
             [gbemu.cpu.core :as cpu]
             [gbemu.timer :as timer]))

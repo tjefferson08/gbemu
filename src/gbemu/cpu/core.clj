@@ -1,6 +1,7 @@
 (ns gbemu.cpu.core
   (:require [gbemu.instruction :as i]
             [gbemu.bus :as bus]
+            [gbemu.bus.logical :as bus!]
             [gbemu.execution.core :as exec]
             [gbemu.cpu.fetch :as fetch]
             [gbemu.cpu.registers :as r]
@@ -59,10 +60,10 @@
       (r/read-reg ctx :l)
       (r/read-reg ctx :sp)
       pc
-      (bus/read! ctx pc)
-      (bus/read! ctx (+ 1 pc))
-      (bus/read! ctx (+ 2 pc))
-      (bus/read! ctx (+ 3 pc)))))
+      (bus!/read! ctx pc)
+      (bus!/read! ctx (+ 1 pc))
+      (bus!/read! ctx (+ 2 pc))
+      (bus!/read! ctx (+ 3 pc)))))
 
 (defn- debug-log [ctx]
   (let [pc (r/read-reg ctx :pc)]
@@ -80,7 +81,7 @@
         ctx'' (fetch/fetch-data ctx')
         _ ((:log ctx'') (str (doctor-log ctx) "\n"))
         ctx''' (debug/update ctx'')
-        ;; _ (debug/print ctx''')
+        _ (debug/print ctx''')
         ctx'''' (exec/execute ctx''')]
     ctx''''))
 

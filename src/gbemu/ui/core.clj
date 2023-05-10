@@ -1,5 +1,5 @@
 (ns gbemu.ui.core
-  (:require [gbemu.bus :as bus]))
+  (:require [gbemu.bus.logical :as bus]))
 
 (defn tile-px [ctx {:keys [tile-num x y addr scale]}]
   (let [tile-line (fn [b1 b2 tile-y]

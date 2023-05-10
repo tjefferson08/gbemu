@@ -1,6 +1,7 @@
 (ns gbemu.io
   (:require [gbemu.timer :as timer]
-            [gbemu.cpu.registers :as r]))
+            [gbemu.cpu.registers :as r]
+            [gbemu.dma.state :as dma]))
 
 (defn init [] {:serial-data [0 0]})
 
@@ -30,7 +31,8 @@
     0xFF06 (timer/write ctx address value)
     0xFF07 (timer/write ctx address value)
     0xFF0F (r/write-interrupt-flags ctx value)
-     ctx))
+    0xFF46 (dma/start ctx value)
+    ctx))
      ;; (do (println (format "Unimplemented IO register %08X" address))
      ;;     ctx)))
     ;; :else (throw (Exception. (format "Unimplemented IO register %08X" address)))))
