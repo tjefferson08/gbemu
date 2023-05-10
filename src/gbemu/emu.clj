@@ -25,7 +25,7 @@
      (throw (Exception. "TICK LIMIT EXCEEDED")))
 
   ;; rework to be clojureish
-   (if (:running (:emu ctx))
+   (if (and (not (get-in ctx [:cpu :stopped])) (:running (:emu ctx)))
      (if (:paused (:emu ctx))
        (or (delay 10) (recur ctx))
        (let [

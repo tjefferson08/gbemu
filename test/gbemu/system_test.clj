@@ -6,7 +6,8 @@
             [gbemu.bus.logical :as bus]
             [gbemu.execution.flags :as flags]
             [gbemu.cpu.core :as cpu]
-            [gbemu.timer :as timer]))
+            [gbemu.timer :as timer]
+            [gbemu.emu :as emu]))
 
 (defn submap? [a-map b-map]
  (every? (fn [[k _ :as entry]] (= entry (find b-map k))) a-map))
@@ -25,9 +26,10 @@
   (let [rom-file     (clojure.java.io/file "/tmp/tempfile-rom.gb")
         new-rom-bytes (byte-array (build-rom-vec instructions regions))
         _            (bytes/spit-bytes rom-file new-rom-bytes)
-        ctx          (sut/init rom-file)
-        ctx'         (assoc ctx :log print :timer (timer/init))]
-     (cpu/run ctx')))
+        ctx          (-> (sut/init rom-file)
+                         (assoc :log print :timer (timer/init))
+                         (update :emu assoc :headless true))]
+     (emu/run ctx)))
 
 (deftest ^:integration stack-operations
   (let [ctx (ctx-with {:instructions [
@@ -67,7 +69,8 @@
     (is (= 0xFF (bus/read! load-1 0xD602)))
     (is (= 0xDF (bus/read! load-1 0xD603))))
 
-  (let [load-2 (ctx-with {:instructions [0x21 0x82 0xFF ;; LD HL, $FF82
+  (let [load-2 (ctx-with {:instructions [0x21 0x34 0x12 ;; LD HL, 0x1234
+                                         0x21 0x82 0xFF ;; LD HL, $FF82
                                          0x36 0x99      ;; LD (HL), $99
                                          0x4E           ;; LD C, (HL)
                                          0x10]})]
@@ -467,6 +470,31 @@
                                             0x10]})]
     (is (= 0x35 (r/read-reg ctx-cpl-1 :a)))
     (is (submap? {:n true, :h true} (flags/all ctx-cpl-1)))))
+
+(deftest ^:integration dma
+  (let [ctx (ctx-with {:instructions [0x21 0x00 0xC0 ;; LD HL, $C000 (start of block to DMA load)
+
+                                      ;; loop: load up $AF thru $00 into $C000 thru $C0AF (more than enough for a DMA run)
+                                      0x3E 0x9F      ;; LD A, $9F
+                                      0x22           ;; LD (HL+),A
+                                      0x3D           ;; DEC A
+                                      0x20 0xFC      ;; JR NZ, $FE (-4)
+
+                                      ;; trigger DMA by writing $C0 $FF46
+                                      0x3E 0xC0      ;; LD A, $C0
+                                      0x06 0x30      ;; LD B, $30 (for wait loop, waiting lots of extra cycles)
+                                      0xE0 0x46      ;; LDH $46, A (LD $FF46, A)
+                                      0x05           ;; DEC B
+                                      0x20 0xFD      ;; JR NZ, $FE (-3)
+
+                                      0x10]})]
+    (let [addrs-ram   (range 0xC000 0xC0A0)
+          addrs-vram  (range 0xFE00 0xFEA0)
+          actual-ram  (map #(bus/read! ctx %) addrs-ram)
+          actual-vram (map #(bus/read! ctx %) addrs-vram)
+          expected    (take 0xA0 (iterate dec 0x9F))]
+      (is (= expected actual-ram))
+      (is (= expected actual-vram)))))
 
 (comment
   (format "%04X" 99)

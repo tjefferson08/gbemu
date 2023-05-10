@@ -8,7 +8,7 @@
    (pos? (:start-delay dma)) (update-in ctx [:dma :start-delay] dec)
    :else (let [offset     (:byte dma)
                read-addr  (* 0x100 (:value dma))
-               value      (bus/read! (+ offset read-addr))
+               value      (bus/read! ctx (+ offset read-addr))
                offset'    (inc offset)
                active'    (<= offset' 0x9F)]
             (println "writing dma!")

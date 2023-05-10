@@ -26,7 +26,7 @@
 (defn tick [])
 
 (defn read-oam [ctx addr]
-  (let [address (if (< 0xFE00 addr) (- addr 0xFE00) addr)]
+  (let [address (if (<= 0xFE00 addr) (- addr 0xFE00) addr)]
     (get-in ctx [:ppu :oam-ram address])))
 
 (defn write-oam [ctx addr value]
