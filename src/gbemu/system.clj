@@ -9,7 +9,9 @@
             [clojure.java.io :as jio]
             [gbemu.debug :as debug]
             [gbemu.timer :as timer]
-            [gbemu.ppu :as ppu]))
+            [gbemu.ppu :as ppu]
+            [gbemu.lcd :as lcd]
+            [gbemu.dma.state :as dma]))
 
 (set! *warn-on-reflection* true)
 
@@ -23,14 +25,17 @@
    ["-h" "--help"]])
 
 (defn init [rom]
- {:emu (emu/init)
-  :cartridge (load-cartridge rom)
-  :io (io/init)
-  :debug (debug/init)
-  :cpu (cpu/init)
-  :ppu (ppu/init)
-  :timer (timer/init)
-  :ram (ram/init)})
+  (merge (lcd/init)
+         (dma/init)
+         {:emu (emu/init)
+          :cartridge (load-cartridge rom)
+          :io (io/init)
+          :debug (debug/init)
+          :cpu (cpu/init)
+          :ppu (ppu/init)
+          :timer (timer/init)
+          :ram (ram/init)}))
+
 
 (defn -main [& args]
   (let [opts (parse-opts args cli-options)
