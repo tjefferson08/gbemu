@@ -18,11 +18,13 @@
 (defn palette-num [])
 
 (defn oam-tick [ctx]
+  ;; (println "oam-tick " (get-in ctx [:ppu :line-ticks]))
   (if (<= 80 (get-in ctx [:ppu :line-ticks]))
      (lcd/lcds-set-mode ctx :xfer)
      ctx))
 
 (defn xfer-tick [ctx]
+  ;; (println "xfer-tick " (get-in ctx [:ppu :line-ticks]))
   (if (<= (+ 80 172) (get-in ctx [:ppu :line-ticks]))
     (lcd/lcds-set-mode ctx :hblank)
     ctx))
@@ -37,7 +39,8 @@
       :else                                (-> ctx' (lcd/lcds-set-lyc false)))))
 
 (defn vblank-tick [ctx]
-  (if (> TICKS_PER_LINE (get-in [:ppu :line-ticks]))
+  ;; (println "vblank-tick " (get-in ctx [:ppu :line-ticks]) " ly " (lcd/ly ctx))
+  (if (> TICKS_PER_LINE (get-in ctx [:ppu :line-ticks]))
     ctx
     (let [ctx'  (increment-ly ctx)
           ctx'' (if (<= LINES_PER_FRAME (lcd/ly ctx'))
@@ -46,6 +49,7 @@
       (assoc-in ctx'' [:ppu :line-ticks] 0))))
 
 (defn hblank-tick [ctx]
+  ;; (println "hblank-tick " (get-in ctx [:ppu :line-ticks]) " ly " (lcd/ly ctx))
   (let [handle-y-ovf (fn [c] (-> c
                                (lcd/lcds-set-mode :vblank)
                                (interrupt/request :vblank)
@@ -59,7 +63,7 @@
          (#(if (<= YRES (lcd/ly %))
              (handle-y-ovf %)
              (lcd/lcds-set-mode % :oam)))
-         (update-in [:ppu :line-ticks] inc)))))
+         (assoc-in [:ppu :line-ticks] 0)))))
 
 (def TICK_DISPATCH
   {:oam oam-tick
@@ -68,6 +72,7 @@
    :hblank hblank-tick})
 
 (defn tick [ctx]
+  ;; (println "tick " (get-in ctx [:ppu :line-ticks]) " mode " (lcd/lcds-mode ctx))
   (let [mode (lcd/lcds-mode ctx)
         f (TICK_DISPATCH mode)]
      (-> ctx (update-in [:ppu :line-ticks] inc)
@@ -78,7 +83,7 @@
     (get-in ctx [:ppu :oam-ram address])))
 
 (defn write-oam [ctx addr value]
-  (let [address (if (< 0xFE00 addr) (- addr 0xFE00) addr)]
+  (let [address (if (<= 0xFE00 addr) (- addr 0xFE00) addr)]
     (assoc-in ctx [:ppu :oam-ram address] (unchecked-byte value))))
 
 (defn read-vram [ctx addr]

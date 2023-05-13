@@ -36,7 +36,7 @@
                              (ppu/read-oam ctx address))
 
         ;; 0xFEA0 - 0xFEFF : Reserved - Unusable
-        (> 0xFF00 address) (throw (Exception. "Reserved - Unusable"))
+        (> 0xFF00 address) (do (log/stderr "Read from reserved range") 0xFF)
 
         ;; 0xFF00 - 0xFF7F : I/O Registers
         (> 0xFF80 address) (io/read ctx address)
@@ -73,7 +73,7 @@
       (> 0xFEA0 address) (if (dma/transferring? ctx) ctx (ppu/write-oam ctx address value))
 
       ;; 0xFEA0 - 0xFEFF : Reserved - Unusable
-      (> 0xFF00 address) (throw (Exception. "Reserved - Unusable"))
+      (> 0xFF00 address) (do (log/stderr "Write to reserved range") ctx)
 
       ;; 0xFF00 - 0xFF7F : I/O Registers
       (> 0xFF80 address) (io/write ctx address value)

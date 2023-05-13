@@ -1,6 +1,7 @@
 (ns gbemu.cartridge
   (:require [clojure.java.io :as io]
-            [gbemu.bytes :as bytes]))
+            [gbemu.bytes :as bytes]
+            [gbemu.log :as log]))
 
 (def rom-types
  {0x00 "ROM ONLY",
@@ -75,7 +76,9 @@
 (defn read [ctx address]
    (aget (get-in ctx [:cartridge :rom-bytes]) address))
 
-(defn write [ctx address value])
+(defn write [ctx address value]
+  (log/stderr (format "(cart/write %02X %02X)" address value))
+  ctx)
 
 (comment
 

@@ -168,6 +168,15 @@
     (is (= 0x11 (bus/read! load-hl+ 0xFF81)))
     (is (= 0x21 (bus/read! load-hl+ 0xFF82)))))
 
+;; Found boundary bug at addr $FE00 (start of OAM ram)
+(deftest ^:integration load-and-inc-instructions-3
+  (let [ctx (ctx-with {:instructions [0x3E 0x00      ;; LD A, $00
+                                      0x21 0x00 0xFE ;; LD HL, $FE00
+                                      0x32           ;; LD (HL-), A
+                                      0x10]})]
+    (is (= 0xFDFF (r/read-reg ctx :hl)))
+    (is (= 0x00 (bus/read! ctx 0xFE00)))))
+
 
 (deftest ^:integration reti
   (let [ctx (ctx-with {:instructions [
